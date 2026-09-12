@@ -105,6 +105,25 @@ const DEFAULT_MARKETPLACE_MATERIALS = [
     match_score: 91,
     primary_image_url: 'https://5.imimg.com/data5/SELLER/Default/2023/2/UA/IC/MN/18884681/used-brown-paper-bag-1000x1000-500x500.jpg',
     seller: { name: 'ITC Paperboards Circular Division', trust_score: 97, city: 'Mumbai' }
+  },
+  {
+    id: 'mat-demo-106',
+    code: 'MAT-2026-7734',
+    name: 'Heavy Industrial Reconditioned Steel Drums (210L Capacity)',
+    category: 'Metal',
+    subtype: 'Steel Drums',
+    condition: 'Reusable',
+    grade: 'UN Certified Class 1',
+    quantity: 450,
+    unit: 'units',
+    quantity_kg: 6750,
+    price_per_unit: 75.00,
+    delivered_cost_per_kg: 82.00,
+    location_city: 'Ahmedabad',
+    distance_km: 22,
+    match_score: 95,
+    primary_image_url: 'https://images.unsplash.com/photo-1535813547-99c456a41d4a?w=600&q=80',
+    seller: { name: 'Ahmedabad Eco-Metal Recovery Ltd', trust_score: 96, city: 'Ahmedabad' }
   }
 ];
 
@@ -471,84 +490,119 @@ export const MaterialDetailPage: React.FC = () => {
 
         {/* Right Column: Interactive Escrow Buy Checkout Panel (3 cols) */}
         <div className="lg:col-span-3 space-y-4">
-          <div className="bg-slate-950 text-white rounded-xl p-5 shadow-xl border border-slate-800 space-y-5 sticky top-6">
+          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xl space-y-5 sticky top-6 relative overflow-hidden">
             
+            {/* Top Accent Gradient Bar */}
+            <div className="h-1.5 bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 rounded-t-2xl -mt-5 -mx-5 mb-2" />
+
             {/* Header */}
             <div>
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-mono text-emerald-400 uppercase font-bold flex items-center gap-1">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> ESCROW LOCK CHECKOUT
+                <span className="b2b-badge bg-emerald-50 text-emerald-800 border-emerald-300 font-bold flex items-center gap-1.5 font-mono text-[10px]">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> ESCROW PROTECTED
                 </span>
-                <span className="text-[10px] font-mono text-slate-400">Step 1 of 2</span>
+                <span className="text-[10px] font-mono text-slate-400 font-bold uppercase">Step 1 of 2</span>
               </div>
-              <h3 className="text-base font-bold text-white mt-1">Transaction Summary</h3>
+              <h3 className="text-base font-black text-slate-950 mt-2">Instant Order Checkout</h3>
+              <p className="text-[11px] text-slate-500 mt-0.5">Secure funds in mock escrow; released upon buyer inspection.</p>
             </div>
 
             {/* Price Breakdown Matrix */}
-            <div className="space-y-2 p-3 bg-slate-900 rounded-lg border border-slate-800 text-xs">
+            <div className="space-y-2.5 p-4 bg-slate-950 text-white rounded-xl border border-slate-900 shadow-md text-xs">
               <div className="flex justify-between text-slate-300">
                 <span>Material Subtotal:</span>
-                <span className="font-mono text-white">₹{subtotal.toLocaleString()}</span>
+                <span className="font-mono font-bold text-white">₹{subtotal.toLocaleString()}</span>
               </div>
               <div className="flex justify-between text-slate-300">
                 <span>Freight Logistics:</span>
-                <span className="font-mono text-white">₹{freight.toLocaleString()}</span>
+                <span className="font-mono font-bold text-white">₹{freight.toLocaleString()}</span>
               </div>
               <div className="flex justify-between text-slate-300">
-                <span>Escrow Fee:</span>
-                <span className="font-mono text-emerald-400">₹0.00 (Free)</span>
+                <span>Escrow Guarantee Fee:</span>
+                <span className="font-mono text-emerald-400 font-bold">₹0.00 (Free)</span>
               </div>
-              <div className="pt-2 border-t border-slate-800 flex justify-between font-bold text-sm">
+              <div className="pt-2.5 border-t border-slate-800 flex justify-between items-center font-bold text-sm">
                 <span className="text-white">Delivered Total:</span>
-                <span className="font-mono text-emerald-400 text-base">₹{total.toLocaleString()}</span>
+                <span className="font-mono text-emerald-400 text-lg font-black">₹{total.toLocaleString()}</span>
               </div>
             </div>
 
-            {/* Order Quantity Input */}
-            <div className="space-y-1.5">
-              <label className="text-[11px] text-slate-300 font-bold block">Committed Order Quantity (kg) *</label>
+            {/* Order Quantity Input & Presets */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-[11px] text-slate-900 font-bold uppercase font-mono block">Order Quantity (kg) *</label>
+                <span className="text-[10px] text-slate-400 font-mono">Lot: {Number(material.quantity_kg).toLocaleString()} kg</span>
+              </div>
+
               <div className="relative">
                 <input
                   type="number"
                   value={orderQuantity}
                   onChange={(e) => setOrderQuantity(Number(e.target.value))}
-                  className="w-full px-3 py-2 bg-slate-900 border border-slate-700 text-white font-bold font-mono text-sm rounded-lg focus:outline-none focus:border-emerald-400"
+                  className="w-full pl-3.5 pr-10 py-2.5 bg-slate-50 border border-slate-300 text-slate-950 font-black font-mono text-base rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition"
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 font-mono text-slate-400 text-xs">kg</span>
+                <span className="absolute right-3.5 top-1/2 -translate-y-1/2 font-mono text-slate-400 text-xs font-bold">kg</span>
               </div>
-              <p className="text-[10px] text-slate-400">Available surplus lot size: {Number(material.quantity_kg).toLocaleString()} kg</p>
+
+              {/* Quantity Quick Presets */}
+              <div className="flex items-center gap-1.5 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setOrderQuantity(Math.min(1000, material.quantity_kg))}
+                  className="flex-1 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded font-mono text-[10px] font-bold transition"
+                >
+                  1,000 kg
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setOrderQuantity(Math.round(material.quantity_kg / 2))}
+                  className="flex-1 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded font-mono text-[10px] font-bold transition"
+                >
+                  50% Lot
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setOrderQuantity(material.quantity_kg)}
+                  className="flex-1 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded font-mono text-[10px] font-bold transition"
+                >
+                  Full Lot
+                </button>
+              </div>
             </div>
 
             {/* Primary Buy Button */}
             <button
+              type="button"
               onClick={handlePlaceOrder}
-              disabled={isPlacingOrder}
-              className="w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-lg transition flex items-center justify-center gap-2 shadow-lg disabled:opacity-50 text-xs uppercase tracking-wider"
+              disabled={isPlacingOrder || !orderQuantity || orderQuantity <= 0}
+              className="w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 disabled:bg-slate-300 disabled:text-slate-500 disabled:shadow-none text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all duration-150 shadow-lg shadow-emerald-600/30 hover:shadow-emerald-600/50 hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 group cursor-pointer disabled:cursor-not-allowed"
             >
               {isPlacingOrder ? (
                 <>
-                  <Loader className="w-4 h-4 animate-spin" />
-                  Locking Escrow Deposit...
+                  <Loader className="w-4 h-4 animate-spin text-white" />
+                  Securing Escrow Deposit...
                 </>
               ) : (
                 <>
-                  <Lock className="w-4 h-4" /> Lock Escrow & Buy Now <ArrowRight className="w-4 h-4" />
+                  <Lock className="w-4 h-4 text-white group-hover:scale-110 transition-transform" /> 
+                  <span>Lock Escrow & Buy Now</span>
+                  <ArrowRight className="w-4 h-4 text-white group-hover:translate-x-1 transition-transform" />
                 </>
               )}
             </button>
 
             {/* Trust Bullet Guarantee Points */}
-            <div className="space-y-1.5 pt-2 border-t border-slate-900 text-[10px] text-slate-400">
-              <div className="flex items-center gap-1.5 text-emerald-300 font-medium">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                <span>100% Funds locked in Mock Escrow until QA pass</span>
+            <div className="space-y-2 pt-3 border-t border-slate-100 text-[11px] text-slate-600">
+              <div className="flex items-center gap-2 text-slate-900 font-medium">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>100% Funds locked in Escrow until QA pass</span>
               </div>
-              <div className="flex items-center gap-1.5">
-                <Truck className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+              <div className="flex items-center gap-2">
+                <Truck className="w-4 h-4 text-slate-400 shrink-0" />
                 <span>Dispatched via LoopMarket Logistics within 48h</span>
               </div>
-              <div className="flex items-center gap-1.5">
-                <Award className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+              <div className="flex items-center gap-2">
+                <Award className="w-4 h-4 text-slate-400 shrink-0" />
                 <span>Includes cryptographically signed DPP Passport</span>
               </div>
             </div>

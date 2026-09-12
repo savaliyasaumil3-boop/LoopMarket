@@ -9,77 +9,7 @@ import { useAuth } from '../context/AuthContext';
 import { addContract, fetchContracts, updateContract, fetchMaterials } from '../lib/supabaseData';
 
 // Fallback demo contracts if DB unpopulated
-const DEFAULT_CONTRACTS = [
-  {
-    id: 'ctr_demo_201',
-    contract_number: 'CTR-2026-9041',
-    title: 'Baled OCC Cardboard Monthly Offtake Agreement',
-    seller_id: 'comp-demo-1',
-    seller_name: 'ABC Manufacturing Pvt Ltd',
-    buyer_id: 'comp-demo-2',
-    buyer_name: 'GreenPack Industries Ltd',
-    buyer_city: 'Vadodara',
-    material_name: 'Corrugated Cardboard OCC Grade 11',
-    quantity_kg: 5000,
-    unit_price: 14.50,
-    total_amount: 72500,
-    contract_duration: '30 Days Transactional',
-    status: 'ACTIVE',
-    seller_signed: true,
-    buyer_signed: true,
-    role: 'SELLER',
-    delivery_terms: 'Ex-works seller facility in Ahmedabad. Transporter scheduled via LoopMarket Fleet within 48 hours of dispatch trigger.',
-    payment_terms: '100% Mock Escrow protection. Funds locked upon contract activation; released to seller upon QR QA receipt confirmation.',
-    inspection_terms: 'Max 2% moisture tolerance. Moisture QA inspection report cryptographically attached to Digital Passport hash.',
-    created_at: new Date(Date.now() - 3600000 * 24 * 3).toISOString()
-  },
-  {
-    id: 'ctr_demo_202',
-    contract_number: 'CTR-2026-8102',
-    title: 'HDPE Regrind Flakes Closed-Loop Supply Contract',
-    seller_id: 'comp-demo-3',
-    seller_name: 'Gujarat Circular Polymers & Pulp',
-    buyer_id: 'comp-demo-1',
-    buyer_name: 'ABC Manufacturing Pvt Ltd',
-    buyer_city: 'Ahmedabad',
-    material_name: 'Post-Industrial HDPE Flakes (Clean)',
-    quantity_kg: 2500,
-    unit_price: 42.00,
-    total_amount: 105000,
-    contract_duration: 'Quarterly Recurring Offtake',
-    status: 'ACTIVE',
-    seller_signed: true,
-    buyer_signed: true,
-    role: 'BUYER',
-    delivery_terms: 'Delivered DDP buyer plant in Ahmedabad with temperature-controlled freight truck.',
-    payment_terms: 'Mock Escrow payment released 50% on shipment dispatch and 50% on purity verification.',
-    inspection_terms: '0% organic contamination. Granule size uniform 8mm.',
-    created_at: new Date(Date.now() - 3600000 * 24 * 6).toISOString()
-  },
-  {
-    id: 'ctr_demo_203',
-    contract_number: 'CTR-2026-6710',
-    title: 'Heat Treated Euro Pallet Swap Agreement',
-    seller_id: 'comp-demo-1',
-    seller_name: 'ABC Manufacturing Pvt Ltd',
-    buyer_id: 'comp-demo-4',
-    buyer_name: 'Surat Warehousing & Logistics',
-    buyer_city: 'Surat',
-    material_name: 'EPAL Standard Wooden Euro Pallets',
-    quantity_kg: 8000,
-    unit_price: 450.00,
-    total_amount: 180000,
-    contract_duration: 'Annual Closed-Loop Agreement',
-    status: 'COMPLETED',
-    seller_signed: true,
-    buyer_signed: true,
-    role: 'SELLER',
-    delivery_terms: 'FOB Surat Hub. Inspected and repaired to EPAL Class A standard.',
-    payment_terms: 'Completed. Escrow released.',
-    inspection_terms: 'ISPM-15 heat treatment stamp verified.',
-    created_at: new Date(Date.now() - 3600000 * 24 * 20).toISOString()
-  }
-];
+const DEFAULT_CONTRACTS: any[] = [];
 
 const DEFAULT_COMPANIES = [
   { id: 'comp-demo-1', name: 'ABC Manufacturing Pvt Ltd', city: 'Ahmedabad' },

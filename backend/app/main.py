@@ -7,6 +7,11 @@ from app.api import (
     simulator, ai, admin
 )
 
+from app.models.database import Base, engine
+
+# Initialize SQLite database schemas
+Base.metadata.create_all(bind=engine)
+
 app = FastAPI(
     title=settings.PROJECT_NAME,
     description="Production-grade API for RELOOP - AI-Powered Circular Packaging & Materials Exchange",
