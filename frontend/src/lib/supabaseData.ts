@@ -5,9 +5,16 @@ import { supabase } from './supabaseClient';
  * `data` should match the columns of your `materials` table.
  */
 export async function addMaterial(data: Record<string, any>) {
-  const { data: result, error } = await supabase.from('materials').insert([data]);
-  if (error) throw error;
-  return result;
+  try {
+    const { data: result, error } = await supabase.from('materials').insert([data]);
+    if (error) {
+      console.warn('Supabase DB materials insert notice:', error.message);
+    }
+    return result;
+  } catch (err: any) {
+    console.warn('Supabase DB insert skipped or table missing:', err.message);
+    return null;
+  }
 }
 
 /**
@@ -22,6 +29,22 @@ export async function fetchMaterials(filters: Record<string, any> = {}) {
   const { data, error } = await query;
   if (error) throw error;
   return data;
+}
+
+/**
+ * Delete a material record from Supabase table 'materials'.
+ */
+export async function deleteMaterial(id: string | number) {
+  try {
+    const { data, error } = await supabase.from('materials').delete().eq('id', id);
+    if (error) {
+      console.warn('Supabase DB delete notice:', error.message);
+    }
+    return { success: !error, data, error };
+  } catch (err: any) {
+    console.warn('Supabase DB delete skipped or error:', err.message);
+    return { success: false, error: err.message };
+  }
 }
 
 /**

@@ -52,6 +52,7 @@ export const api = {
   },
   getMaterial: (id: string) => fetchApi(`/materials/${id}`),
   createMaterial: (data: any) => fetchApi('/materials', { method: 'POST', body: JSON.stringify(data) }),
+  deleteMaterial: (id: string) => fetchApi(`/materials/${id}`, { method: 'DELETE' }),
   parseSearch: (query: string) => fetchApi('/materials/parse-search', { method: 'POST', body: JSON.stringify({ query }) }),
 
   // Requirements

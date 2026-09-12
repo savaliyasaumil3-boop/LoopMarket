@@ -286,3 +286,15 @@ async def parse_natural_language_search(req: Layer1SearchQuery):
     """
     filters = await minimax_layer1.parse_search_query(req.query)
     return {"query": req.query, "structured_filters": filters}
+
+@router.delete("/{id}")
+def delete_material(id: str, db: Session = Depends(get_db)):
+    m = db.query(MaterialListing).filter(MaterialListing.id == id).first()
+    if not m:
+        raise HTTPException(status_code=404, detail="Material listing not found")
+    
+    db.query(MaterialPassport).filter(MaterialPassport.material_id == id).delete()
+    db.delete(m)
+    db.commit()
+    return {"success": True, "message": "Material listing deleted successfully"}
+
