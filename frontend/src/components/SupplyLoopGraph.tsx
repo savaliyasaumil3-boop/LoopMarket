@@ -156,28 +156,65 @@ export const SupplyLoopGraph: React.FC<{ companyId?: string }> = ({ companyId })
           {/* Middle Interactive Nodes Layout */}
           <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 items-center my-auto py-4">
             
+            <style>{`
+              @keyframes flowLine {
+                from { stroke-dashoffset: 12; }
+                to { stroke-dashoffset: 0; }
+              }
+              .animate-flow {
+                animation: flowLine 1s linear infinite;
+              }
+            `}</style>
+
+            {/* Connection Lines Overlay */}
+            <div className="absolute inset-0 z-0 hidden md:block pointer-events-none">
+              <svg className="w-full h-full overflow-visible">
+                {/* Suppliers to Hub */}
+                <line x1="25%" y1="32%" x2="35%" y2="32%" stroke="#34d399" strokeWidth="2" strokeDasharray="6 6" strokeLinecap="round" className="animate-flow" />
+                <line x1="35%" y1="32%" x2="35%" y2="50%" stroke="#34d399" strokeWidth="2" strokeDasharray="6 6" strokeLinecap="round" className="animate-flow" />
+                
+                <line x1="25%" y1="68%" x2="35%" y2="68%" stroke="#34d399" strokeWidth="2" strokeDasharray="6 6" strokeLinecap="round" className="animate-flow" />
+                <line x1="35%" y1="68%" x2="35%" y2="50%" stroke="#34d399" strokeWidth="2" strokeDasharray="6 6" strokeLinecap="round" className="animate-flow" />
+                
+                <line x1="35%" y1="50%" x2="50%" y2="50%" stroke="#34d399" strokeWidth="2" strokeDasharray="6 6" strokeLinecap="round" className="animate-flow" />
+                
+                {/* Hub to Buyers */}
+                <line x1="50%" y1="49%" x2="65%" y2="49%" stroke="#60a5fa" strokeWidth="2" strokeDasharray="6 6" strokeLinecap="round" className="animate-flow" />
+                <line x1="65%" y1="49%" x2="65%" y2="18%" stroke="#60a5fa" strokeWidth="2" strokeDasharray="6 6" strokeLinecap="round" className="animate-flow" />
+                <line x1="65%" y1="18%" x2="75%" y2="18%" stroke="#60a5fa" strokeWidth="2" strokeDasharray="6 6" strokeLinecap="round" className="animate-flow" />
+                
+                <line x1="65%" y1="49%" x2="75%" y2="49%" stroke="#60a5fa" strokeWidth="2" strokeDasharray="6 6" strokeLinecap="round" className="animate-flow" />
+                
+                {/* Hub to Recycler */}
+                <line x1="50%" y1="51%" x2="65%" y2="51%" stroke="#fbbf24" strokeWidth="2" strokeDasharray="6 6" strokeLinecap="round" className="animate-flow" />
+                <line x1="65%" y1="51%" x2="65%" y2="82%" stroke="#fbbf24" strokeWidth="2" strokeDasharray="6 6" strokeLinecap="round" className="animate-flow" />
+                <line x1="65%" y1="82%" x2="75%" y2="82%" stroke="#fbbf24" strokeWidth="2" strokeDasharray="6 6" strokeLinecap="round" className="animate-flow" />
+              </svg>
+            </div>
+
             {/* Left Column: Suppliers */}
             <div className="space-y-3 sm:space-y-4 min-w-0">
               {suppliers.map((s, idx) => (
-                <div
-                  key={s.id}
-                  onClick={() => setSelectedNode(s)}
-                  className={`cursor-pointer p-3 sm:p-3.5 rounded-lg border transition-all text-left ${
-                    selectedNode?.id === s.id
-                      ? 'bg-slate-800 border-emerald-400 shadow-md shadow-emerald-950'
-                      : 'bg-slate-900 border-slate-700 hover:border-slate-500'
-                  }`}
-                >
-                  <div className="flex items-center justify-between gap-1 mb-1.5 min-w-0">
-                    <span className="text-[10px] font-mono px-1.5 py-0.5 bg-emerald-950 text-emerald-300 rounded border border-emerald-800 shrink-0">
-                      SUPPLIER {idx + 1}
-                    </span>
-                    <span className="text-[10px] text-slate-400 truncate">{s.city}</span>
-                  </div>
-                  <h4 className="text-xs font-semibold text-white truncate">{s.name}</h4>
-                  <div className="mt-2 flex items-center justify-between text-[11px] text-slate-300 gap-1">
-                    <span className="truncate">{s.current_price}</span>
-                    <span className="text-emerald-400 font-mono text-[10px] shrink-0 whitespace-nowrap">FLOW IN →</span>
+                <div key={s.id} className="relative w-full">
+                  <div
+                    onClick={() => setSelectedNode(s)}
+                    className={`relative z-10 cursor-pointer p-3 sm:p-3.5 rounded-lg border transition-all text-left ${
+                      selectedNode?.id === s.id
+                        ? 'bg-slate-800 border-emerald-400 shadow-md shadow-emerald-950'
+                        : 'bg-slate-900 border-slate-700 hover:border-slate-500'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-1 mb-1.5 min-w-0">
+                      <span className="text-[10px] font-mono px-1.5 py-0.5 bg-emerald-950 text-emerald-300 rounded border border-emerald-800 shrink-0">
+                        SUPPLIER {idx + 1}
+                      </span>
+                      <span className="text-[10px] text-slate-400 truncate">{s.city}</span>
+                    </div>
+                    <h4 className="text-xs font-semibold text-white truncate">{s.name}</h4>
+                    <div className="mt-2 flex items-center justify-between text-[11px] text-slate-300 gap-1">
+                      <span className="truncate">{s.current_price}</span>
+                      <span className="text-emerald-400 font-mono text-[10px] shrink-0 whitespace-nowrap">FLOW IN →</span>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -188,7 +225,7 @@ export const SupplyLoopGraph: React.FC<{ companyId?: string }> = ({ companyId })
               {centralHub && (
                 <div
                   onClick={() => setSelectedNode(centralHub)}
-                  className={`cursor-pointer p-3.5 sm:p-4 rounded-xl border-2 transition-all w-full text-center relative ${
+                  className={`relative z-10 cursor-pointer p-3.5 sm:p-4 rounded-xl border-2 transition-all w-full text-center ${
                     selectedNode?.id === centralHub.id
                       ? 'bg-slate-900 border-white shadow-xl shadow-slate-900'
                       : 'bg-slate-900 border-emerald-500 hover:border-white'
@@ -217,49 +254,51 @@ export const SupplyLoopGraph: React.FC<{ companyId?: string }> = ({ companyId })
             {/* Right Column: Buyers & Recyclers */}
             <div className="space-y-3 sm:space-y-4 min-w-0">
               {buyers.map((b, idx) => (
-                <div
-                  key={b.id}
-                  onClick={() => setSelectedNode(b)}
-                  className={`cursor-pointer p-3 sm:p-3.5 rounded-lg border transition-all text-left ${
-                    selectedNode?.id === b.id
-                      ? 'bg-slate-800 border-emerald-400 shadow-md shadow-emerald-950'
-                      : 'bg-slate-900 border-slate-700 hover:border-slate-500'
-                  }`}
-                >
-                  <div className="flex items-center justify-between gap-1 mb-1.5 min-w-0">
-                    <span className="text-[10px] font-mono px-1.5 py-0.5 bg-blue-950 text-blue-300 rounded border border-blue-800 shrink-0">
-                      BUYER {idx + 1}
-                    </span>
-                    <span className="text-[10px] text-slate-400 truncate">{b.city}</span>
-                  </div>
-                  <h4 className="text-xs font-semibold text-white truncate">{b.name}</h4>
-                  <div className="mt-2 flex items-center justify-between text-[11px] text-slate-300 gap-1">
-                    <span className="truncate">{b.current_price}</span>
-                    <span className="text-blue-400 font-mono text-[10px] shrink-0 whitespace-nowrap">FLOW OUT →</span>
+                <div key={b.id} className="relative w-full">
+                  <div
+                    onClick={() => setSelectedNode(b)}
+                    className={`relative z-10 cursor-pointer p-3 sm:p-3.5 rounded-lg border transition-all text-left ${
+                      selectedNode?.id === b.id
+                        ? 'bg-slate-800 border-emerald-400 shadow-md shadow-emerald-950'
+                        : 'bg-slate-900 border-slate-700 hover:border-slate-500'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-1 mb-1.5 min-w-0">
+                      <span className="text-[10px] font-mono px-1.5 py-0.5 bg-blue-950 text-blue-300 rounded border border-blue-800 shrink-0">
+                        BUYER {idx + 1}
+                      </span>
+                      <span className="text-[10px] text-slate-400 truncate">{b.city}</span>
+                    </div>
+                    <h4 className="text-xs font-semibold text-white truncate">{b.name}</h4>
+                    <div className="mt-2 flex items-center justify-between text-[11px] text-slate-300 gap-1">
+                      <span className="truncate">{b.current_price}</span>
+                      <span className="text-blue-400 font-mono text-[10px] shrink-0 whitespace-nowrap">FLOW OUT →</span>
+                    </div>
                   </div>
                 </div>
               ))}
 
               {recyclers.map((r) => (
-                <div
-                  key={r.id}
-                  onClick={() => setSelectedNode(r)}
-                  className={`cursor-pointer p-3 sm:p-3.5 rounded-lg border transition-all text-left ${
-                    selectedNode?.id === r.id
-                      ? 'bg-slate-800 border-emerald-400 shadow-md shadow-emerald-950'
-                      : 'bg-slate-900 border-slate-700 hover:border-slate-500'
-                  }`}
-                >
-                  <div className="flex items-center justify-between gap-1 mb-1.5 min-w-0">
-                    <span className="text-[10px] font-mono px-1.5 py-0.5 bg-amber-950 text-amber-300 rounded border border-amber-800 shrink-0">
-                      RECYCLER
-                    </span>
-                    <span className="text-[10px] text-slate-400 truncate">{r.city}</span>
-                  </div>
-                  <h4 className="text-xs font-semibold text-white truncate">{r.name}</h4>
-                  <div className="mt-2 flex items-center justify-between text-[11px] text-slate-300 gap-1">
-                    <span className="truncate">{r.current_price}</span>
-                    <span className="text-amber-400 font-mono text-[10px] shrink-0 whitespace-nowrap">↻ RECIRCULATE</span>
+                <div key={r.id} className="relative w-full">
+                  <div
+                    onClick={() => setSelectedNode(r)}
+                    className={`relative z-10 cursor-pointer p-3 sm:p-3.5 rounded-lg border transition-all text-left ${
+                      selectedNode?.id === r.id
+                        ? 'bg-slate-800 border-emerald-400 shadow-md shadow-emerald-950'
+                        : 'bg-slate-900 border-slate-700 hover:border-slate-500'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-1 mb-1.5 min-w-0">
+                      <span className="text-[10px] font-mono px-1.5 py-0.5 bg-amber-950 text-amber-300 rounded border border-amber-800 shrink-0">
+                        RECYCLER
+                      </span>
+                      <span className="text-[10px] text-slate-400 truncate">{r.city}</span>
+                    </div>
+                    <h4 className="text-xs font-semibold text-white truncate">{r.name}</h4>
+                    <div className="mt-2 flex items-center justify-between text-[11px] text-slate-300 gap-1">
+                      <span className="truncate">{r.current_price}</span>
+                      <span className="text-amber-400 font-mono text-[10px] shrink-0 whitespace-nowrap">↻ RECIRCULATE</span>
+                    </div>
                   </div>
                 </div>
               ))}
