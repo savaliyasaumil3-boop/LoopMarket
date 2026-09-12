@@ -81,6 +81,17 @@ const DEFAULT_CONTRACTS = [
   }
 ];
 
+const DEFAULT_COMPANIES = [
+  { id: 'comp-demo-1', name: 'ABC Manufacturing Pvt Ltd', city: 'Ahmedabad' },
+  { id: 'comp-demo-2', name: 'GreenPack Industries Ltd', city: 'Vadodara' },
+  { id: 'comp-demo-3', name: 'Gujarat Circular Polymers & Pulp', city: 'Surat' },
+  { id: 'comp-demo-4', name: 'Surat Warehousing & Logistics Hub', city: 'Surat' },
+  { id: 'comp-demo-5', name: 'Reliance Circular Polymer Works', city: 'Jamnagar' },
+  { id: 'comp-demo-6', name: 'Tata Chemicals Eco-Resource Facility', city: 'Mithapur' },
+  { id: 'comp-demo-7', name: 'Adani Clean Energy & Packaging Hub', city: 'Mundra' },
+  { id: 'comp-demo-8', name: 'Ahmedabad Eco-Metal Recovery Ltd', city: 'Ahmedabad' }
+];
+
 export const ContractsPage: React.FC = () => {
   const { company } = useAuth();
   const [contracts, setContracts] = useState<any[]>([]);
@@ -99,7 +110,7 @@ export const ContractsPage: React.FC = () => {
   const [partnerCompanyId, setPartnerCompanyId] = useState('');
   const [customPartnerName, setCustomPartnerName] = useState('');
   const [partnerRole, setPartnerRole] = useState<'BUYER' | 'SELLER'>('BUYER');
-  const [companiesList, setCompaniesList] = useState<any[]>([]);
+  const [companiesList, setCompaniesList] = useState<any[]>(DEFAULT_COMPANIES);
   const [activeListings, setActiveListings] = useState<any[]>([]);
   const [selectedListingId, setSelectedListingId] = useState('');
 
@@ -113,7 +124,15 @@ export const ContractsPage: React.FC = () => {
 
   useEffect(() => {
     loadContracts();
-    api.getCompanies().then(res => setCompaniesList(res || []));
+    api.getCompanies()
+      .then(res => {
+        if (res && Array.isArray(res) && res.length > 0) {
+          setCompaniesList(res);
+        } else {
+          setCompaniesList(DEFAULT_COMPANIES);
+        }
+      })
+      .catch(() => setCompaniesList(DEFAULT_COMPANIES));
     loadActiveListings();
   }, [statusFilter, roleTab]);
 
@@ -678,43 +697,55 @@ export const ContractsPage: React.FC = () => {
 
             <form onSubmit={handleCreateContract} className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
               
-              <div className="space-y-1">
-                <label className="font-semibold text-slate-700">Contracting Role Option *</label>
+              {/* BUY OR SELL ROLE SELECTION */}
+              <div className="space-y-1.5 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                <label className="font-bold text-slate-800 text-xs uppercase tracking-wider block">
+                  1. Select Contract Role (Buy or Sell) *
+                </label>
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
                     onClick={() => setPartnerRole('BUYER')}
-                    className={`py-2 px-3 rounded-lg font-bold text-xs border text-center transition cursor-pointer ${
+                    className={`py-2.5 px-3 rounded-lg font-bold text-xs border text-left transition flex items-center justify-center gap-2 cursor-pointer ${
                       partnerRole === 'BUYER' 
-                        ? 'bg-emerald-50 border-emerald-500 text-emerald-900' 
-                        : 'bg-white border-slate-200 text-slate-600'
+                        ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm' 
+                        : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-100'
                     }`}
                   >
-                    You are SELLER (Selling)
+                    <Building2 className="w-4 h-4 text-emerald-200" />
+                    <div>
+                      <div className="font-extrabold text-xs">SELLER Option</div>
+                      <div className="text-[10px] opacity-80 font-normal">You are Selling Material</div>
+                    </div>
                   </button>
                   <button
                     type="button"
                     onClick={() => setPartnerRole('SELLER')}
-                    className={`py-2 px-3 rounded-lg font-bold text-xs border text-center transition cursor-pointer ${
+                    className={`py-2.5 px-3 rounded-lg font-bold text-xs border text-left transition flex items-center justify-center gap-2 cursor-pointer ${
                       partnerRole === 'SELLER' 
-                        ? 'bg-blue-50 border-blue-500 text-blue-900' 
-                        : 'bg-white border-slate-200 text-slate-600'
+                        ? 'bg-blue-600 border-blue-600 text-white shadow-sm' 
+                        : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-100'
                     }`}
                   >
-                    You are BUYER (Buying)
+                    <UserCheck className="w-4 h-4 text-blue-200" />
+                    <div>
+                      <div className="font-extrabold text-xs">BUYER Option</div>
+                      <div className="text-[10px] opacity-80 font-normal">You are Buying Offtake</div>
+                    </div>
                   </button>
                 </div>
               </div>
 
-              <div className="space-y-1 bg-emerald-50/60 p-3 rounded-lg border border-emerald-100">
-                <label className="font-semibold text-emerald-900 text-xs flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+              {/* AUTO-FILL FROM ACTIVE MATERIAL LISTINGS */}
+              <div className="space-y-1 bg-emerald-50/70 p-3 rounded-xl border border-emerald-200">
+                <label className="font-bold text-emerald-950 text-xs flex items-center gap-1.5">
+                  <Sparkles className="w-4 h-4 text-emerald-600" />
                   Link Active Material Listing (Auto-Fills Details)
                 </label>
                 <select
                   value={selectedListingId}
                   onChange={(e) => handleSelectListing(e.target.value)}
-                  className="b2b-input font-medium bg-white"
+                  className="b2b-input font-medium bg-white border-emerald-200 focus:border-emerald-500"
                 >
                   <option value="">-- Select from your active material lots (Optional) --</option>
                   {activeListings.map(item => (
@@ -725,24 +756,32 @@ export const ContractsPage: React.FC = () => {
                 </select>
               </div>
 
-              <div className="space-y-2">
-                <label className="font-semibold text-slate-700 block">Contracting Partner Company *</label>
+              {/* CONTRACTING PARTNER COMPANY DROPDOWN & CUSTOM INPUT */}
+              <div className="space-y-2 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                <label className="font-bold text-slate-800 text-xs uppercase tracking-wider block">
+                  2. Contracting Partner Company *
+                </label>
                 <select
                   value={partnerCompanyId}
                   onChange={(e) => setPartnerCompanyId(e.target.value)}
-                  className="b2b-input font-medium mb-1"
+                  className="b2b-input font-semibold text-slate-900 bg-white border-slate-300 focus:border-slate-900"
                 >
-                  <option value="">Select partner facility from network...</option>
+                  <option value="">-- Select partner company from B2B network ({companiesList.length} available) --</option>
                   {companiesList.map(c => (
                     <option key={c.id} value={c.id}>{c.name} ({c.city || 'Gujarat'})</option>
                   ))}
                 </select>
+                <div className="flex items-center gap-2 my-1">
+                  <div className="h-px bg-slate-300 flex-1" />
+                  <span className="text-[10px] text-slate-500 font-mono font-bold">OR TYPE CUSTOM COMPANY NAME</span>
+                  <div className="h-px bg-slate-300 flex-1" />
+                </div>
                 <input
                   type="text"
-                  placeholder="Or enter custom partner company name..."
+                  placeholder="e.g. Reliance Circular Polymer Works, Vadodara"
                   value={customPartnerName}
                   onChange={(e) => setCustomPartnerName(e.target.value)}
-                  className="b2b-input font-medium text-xs bg-slate-50"
+                  className="b2b-input font-medium text-xs bg-white border-slate-300"
                   required={!partnerCompanyId}
                 />
               </div>
