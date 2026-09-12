@@ -62,26 +62,26 @@ COMPANY_DATA = [
 
 MATERIAL_TEMPLATES = [
     # Cardboard
-    {"name": "Clean Corrugated Cardboard Boxes (OCC 11)", "cat": "Cardboard", "sub": "Corrugated Boxes", "price": 14.5, "unit": "kg", "grade": "OCC Grade 11", "cond": "Good", "contam": "Low", "img": "https://images.unsplash.com/photo-1530587191325-3db32d826c18?w=500&q=80"},
-    {"name": "Baled Double-Wall Shipping Cartons", "cat": "Cardboard", "sub": "Heavy Corrugated Cartons", "price": 16.0, "unit": "kg", "grade": "Heavy Duty 5-Ply", "cond": "Excellent", "contam": "None", "img": "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=500&q=80"},
-    {"name": "Post-Retail Flat Folded Cartons", "cat": "Cardboard", "sub": "Single Wall Boxes", "price": 12.0, "unit": "kg", "grade": "OCC Grade 8", "cond": "Reusable", "contam": "Low", "img": "https://images.unsplash.com/photo-1607344645866-009c320c5ab8?w=500&q=80"},
+    {"name": "Clean Corrugated Cardboard Boxes (OCC 11)", "cat": "Cardboard", "sub": "Corrugated Boxes", "price": 14.5, "unit": "kg", "grade": "OCC Grade 11", "cond": "Good", "contam": "Low", "img": "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&q=80"},
+    {"name": "Baled Double-Wall Shipping Cartons", "cat": "Cardboard", "sub": "Heavy Corrugated Cartons", "price": 16.0, "unit": "kg", "grade": "Heavy Duty 5-Ply", "cond": "Excellent", "contam": "None", "img": "https://images.unsplash.com/photo-1530587191325-3db32d826c18?w=800&q=80"},
+    {"name": "Post-Retail Flat Folded Cartons", "cat": "Cardboard", "sub": "Single Wall Boxes", "price": 12.0, "unit": "kg", "grade": "OCC Grade 8", "cond": "Reusable", "contam": "Low", "img": "https://images.unsplash.com/photo-1607344645866-009c320c5ab8?w=800&q=80"},
     
     # Plastic
-    {"name": "Clean Baled HDPE Industrial Drums & Carboys", "cat": "Plastic", "sub": "Rigid HDPE Polymer", "price": 42.0, "unit": "kg", "grade": "Polymer Regrind Grade A", "cond": "Excellent", "contam": "None", "img": "https://images.unsplash.com/photo-1591195853828-11db59a44f6b?w=500&q=80"},
-    {"name": "PP Returnable Folding Crates (50L)", "cat": "Crates", "sub": "Polypropylene Crates", "price": 180.0, "unit": "units", "grade": "Virgin-Equivalent PP", "cond": "Reusable", "contam": "None", "img": "https://images.unsplash.com/photo-1584824486509-112e4181ff6b?w=500&q=80"},
-    {"name": "Post-Industrial LDPE Stretch Wrap (98/2)", "cat": "Packaging Film", "sub": "LDPE Film Bales", "price": 36.5, "unit": "kg", "grade": "Film Grade 98/2", "cond": "Good", "contam": "Low", "img": "https://images.unsplash.com/photo-1618042164219-62c820f10723?w=500&q=80"},
+    {"name": "Clean Baled HDPE Industrial Drums & Carboys", "cat": "Plastic", "sub": "Rigid HDPE Polymer", "price": 42.0, "unit": "kg", "grade": "Polymer Regrind Grade A", "cond": "Excellent", "contam": "None", "img": "https://images.unsplash.com/photo-1591195853828-11db59a44f6b?w=800&q=80"},
+    {"name": "PP Returnable Folding Crates (50L)", "cat": "Crates", "sub": "Polypropylene Crates", "price": 180.0, "unit": "units", "grade": "Virgin-Equivalent PP", "cond": "Reusable", "contam": "None", "img": "https://images.unsplash.com/photo-1584824486509-112e4181ff6b?w=800&q=80"},
+    {"name": "Post-Industrial LDPE Stretch Wrap (98/2)", "cat": "Packaging Film", "sub": "LDPE Film Bales", "price": 36.5, "unit": "kg", "grade": "Film Grade 98/2", "cond": "Good", "contam": "Low", "img": "https://images.unsplash.com/photo-1618042164219-62c820f10723?w=800&q=80"},
     
     # Pallets & Wood
-    {"name": "Standard Euro Wooden Pallets (1200x800mm)", "cat": "Pallets", "sub": "EUR-EPAL Wooden Pallets", "price": 320.0, "unit": "units", "grade": "EPAL Certified Reusable", "cond": "Good", "contam": "None", "img": "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=500&q=80"},
-    {"name": "Heavy Duty 4-Way Pine Pallets (1200x1000mm)", "cat": "Pallets", "sub": "4-Way Entry Pallets", "price": 380.0, "unit": "units", "grade": "Heat Treated ISPM-15", "cond": "Excellent", "contam": "None", "img": "https://images.unsplash.com/photo-1586528116493-da00570b20cf?w=500&q=80"},
-    {"name": "Disassembled Wood Slat Packaging Timber", "cat": "Wood", "sub": "Packaging Timber", "price": 9.5, "unit": "kg", "grade": "Seasoned Pine Wood", "cond": "Reusable", "contam": "Low", "img": "https://images.unsplash.com/photo-1546484396-fb3fc6f95f98?w=500&q=80"},
+    {"name": "Standard Euro Wooden Pallets (1200x800mm)", "cat": "Pallets", "sub": "EUR-EPAL Wooden Pallets", "price": 320.0, "unit": "units", "grade": "EPAL Certified Reusable", "cond": "Good", "contam": "None", "img": "https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=800&q=80"},
+    {"name": "Heavy Duty 4-Way Pine Pallets (1200x1000mm)", "cat": "Pallets", "sub": "4-Way Entry Pallets", "price": 380.0, "unit": "units", "grade": "Heat Treated ISPM-15", "cond": "Excellent", "contam": "None", "img": "https://images.unsplash.com/photo-1586528116493-da00570b20cf?w=800&q=80"},
+    {"name": "Disassembled Wood Slat Packaging Timber", "cat": "Wood", "sub": "Packaging Timber", "price": 9.5, "unit": "kg", "grade": "Seasoned Pine Wood", "cond": "Reusable", "contam": "Low", "img": "https://images.unsplash.com/photo-1546484396-fb3fc6f95f98?w=800&q=80"},
     
     # Paper
-    {"name": "Unprinted Kraft Paper Side-Rolls & Offcuts", "cat": "Paper", "sub": "Virgin Kraft Offcuts", "price": 24.0, "unit": "kg", "grade": "180 GSM High Burst", "cond": "Excellent", "contam": "None", "img": "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=500&q=80"},
-    {"name": "Shredded Protective Cushioning Paper", "cat": "Paper", "sub": "Protective Packing Fill", "price": 11.5, "unit": "kg", "grade": "Clean Kraft Shred", "cond": "Reusable", "contam": "None", "img": "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=500&q=80"},
+    {"name": "Unprinted Kraft Paper Side-Rolls & Offcuts", "cat": "Paper", "sub": "Virgin Kraft Offcuts", "price": 24.0, "unit": "kg", "grade": "180 GSM High Burst", "cond": "Excellent", "contam": "None", "img": "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=800&q=80"},
+    {"name": "Shredded Protective Cushioning Paper", "cat": "Paper", "sub": "Protective Packing Fill", "price": 11.5, "unit": "kg", "grade": "Clean Kraft Shred", "cond": "Reusable", "contam": "None", "img": "https://images.unsplash.com/photo-1603484477859-abe6a73f9366?w=800&q=80"},
     
     # Reusable Boxes
-    {"name": "Heavy Duty PP Fluted Sleeve Packs", "cat": "Reusable Boxes", "sub": "Collapsible Bulk Sleeves", "price": 650.0, "unit": "units", "grade": "Multi-trip Industrial", "cond": "Excellent", "contam": "None", "img": "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=500&q=80"}
+    {"name": "Heavy Duty PP Fluted Sleeve Packs", "cat": "Reusable Boxes", "sub": "Collapsible Bulk Sleeves", "price": 650.0, "unit": "units", "grade": "Multi-trip Industrial", "cond": "Excellent", "contam": "None", "img": "https://images.unsplash.com/photo-1584824486509-112e4181ff6b?w=800&q=80"}
 ]
 
 def seed_database():

@@ -7,8 +7,6 @@ import {
 } from 'lucide-react';
 import { api } from '../lib/api';
 import { deleteMaterial, fetchMaterials } from '../lib/supabaseData';
-import { MaterialPassportModal } from '../components/MaterialPassportModal';
-import { CircularImpactGraph } from '../components/CircularImpactGraph';
 import { useAuth } from '../context/AuthContext';
 
 export const YourListingsPage: React.FC = () => {
@@ -251,12 +249,6 @@ export const YourListingsPage: React.FC = () => {
           <span className="text-[10px] text-slate-400 font-mono">Row-level delete enabled</span>
         </div>
       </div>
-
-      {/* Circular Impact Graph Section */}
-      <CircularImpactGraph 
-        title="Your Facility's Circular Carbon Impact Graph"
-        subtitle="Empirical Scope 3 GHG avoided virgin emissions trajectory based on your listed & traded packaging lots"
-      />
 
       {/* Filter and Search Bar */}
       <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs flex flex-col md:flex-row gap-3 items-center justify-between">
