@@ -20,6 +20,38 @@ export const PorterLogisticsPage: React.FC = () => {
   // Step 1: Address Form State
   const [step, setStep] = useState<'address' | 'quote' | 'booking' | 'tracking'>('address');
 
+  // Check for contract booking data
+  useEffect(() => {
+    const contractData = sessionStorage.getItem('contract_booking_data');
+    if (contractData) {
+      try {
+        const data = JSON.parse(contractData);
+        // Pre-fill form with contract data
+        setPickupName(data.pickup_name);
+        setPickupPhone(data.pickup_phone);
+        setPickupAddress(data.pickup_address);
+        setPickupCity(data.pickup_city);
+        setDropName(data.delivery_name);
+        setDropPhone(data.delivery_phone);
+        setDropAddress(data.delivery_address);
+        setDropCity(data.delivery_city);
+        setCustomerName(data.customer_name);
+
+        // Clear the session storage
+        sessionStorage.removeItem('contract_booking_data');
+
+        // Show success notification
+        setContractInfo({
+          contract_number: data.contract_number,
+          material_name: data.material_name,
+          quantity_kg: data.quantity_kg
+        });
+      } catch (err) {
+        console.error('Failed to parse contract data:', err);
+      }
+    }
+  }, []);
+
   // Pickup Details
   const [pickupName, setPickupName] = useState('Warehouse Manager');
   const [pickupPhone, setPickupPhone] = useState('9876543210');
@@ -57,6 +89,7 @@ export const PorterLogisticsPage: React.FC = () => {
   // Step 4: Tracking
   const [trackingData, setTrackingData] = useState<any>(null);
   const [driverDetails, setDriverDetails] = useState<any>(null);
+  const [contractInfo, setContractInfo] = useState<any>(null);
 
   // City Coordinates for Map
   const cityCoordinates: Record<string, { lat: number; lng: number }> = {
@@ -277,6 +310,22 @@ export const PorterLogisticsPage: React.FC = () => {
               <span className="text-lg font-bold text-emerald-600 uppercase">{step}</span>
             </div>
           </div>
+
+          {/* Contract Info Banner */}
+          {contractInfo && (
+            <div className="mt-4 p-4 bg-emerald-50 border border-emerald-200 rounded-lg flex items-center gap-3">
+              <CheckCircle className="w-5 h-5 text-emerald-600" />
+              <div className="flex-1">
+                <p className="font-bold text-emerald-900 text-sm">Contract Approved!</p>
+                <p className="text-xs text-emerald-700">
+                  {contractInfo.contract_number} • {contractInfo.material_name} • {contractInfo.quantity_kg.toLocaleString()} kg
+                </p>
+              </div>
+              <span className="px-3 py-1 bg-emerald-600 text-white rounded text-xs font-bold">
+                AUTO-FILLED
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Progress Steps */}

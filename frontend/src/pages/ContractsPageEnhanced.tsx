@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   FileText, Plus, Search, CheckCircle2, ShieldCheck,
-  Sparkles, ExternalLink, Download, ArrowRight, X, Truck, Package
+  Sparkles, ExternalLink, Download, ArrowRight, X, Truck, Package, Loader
 } from 'lucide-react';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
@@ -10,6 +11,7 @@ import { GoogleMapsView } from '../components/GoogleMapsView';
 
 export const ContractsPage: React.FC = () => {
   const { company } = useAuth();
+  const navigate = useNavigate();
   const [contracts, setContracts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -18,6 +20,7 @@ export const ContractsPage: React.FC = () => {
   const [selectedContract, setSelectedContract] = useState<any | null>(null);
   const [showVehicleBooking, setShowVehicleBooking] = useState(false);
   const [contractToBook, setContractToBook] = useState<any | null>(null);
+  const [redirecting, setRedirecting] = useState(false);
 
   // New Contract Form
   const [partnerCompanyId, setPartnerCompanyId] = useState('');
@@ -82,14 +85,39 @@ export const ContractsPage: React.FC = () => {
       // Show success message
       const updatedContract = { ...selectedContract, buyer_signed: true, status: 'ACTIVE' };
       setSelectedContract(null);
-
-      // Show vehicle booking modal
-      setContractToBook(updatedContract);
-      setShowVehicleBooking(true);
+      setRedirecting(true);
 
       loadContracts();
+
+      // Prepare contract data for Porter page
+      const contractData = {
+        contract_id: updatedContract.id,
+        contract_number: updatedContract.contract_number,
+        material_name: updatedContract.material_name,
+        quantity_kg: updatedContract.quantity_kg,
+        pickup_city: updatedContract.seller?.city || 'Ahmedabad',
+        pickup_address: updatedContract.seller?.address || 'Warehouse Location',
+        pickup_name: updatedContract.seller?.name || 'Seller',
+        pickup_phone: updatedContract.seller?.contact_phone || '9876543210',
+        delivery_city: updatedContract.buyer?.city || 'Vadodara',
+        delivery_address: updatedContract.buyer?.address || 'Factory Location',
+        delivery_name: updatedContract.buyer?.name || 'Buyer',
+        delivery_phone: updatedContract.buyer?.contact_phone || '9876543211',
+        customer_name: company?.name || 'RELOOP Logistics'
+      };
+
+      // Store in sessionStorage for Porter page to read
+      sessionStorage.setItem('contract_booking_data', JSON.stringify(contractData));
+
+      // Show success notification
+      setTimeout(() => {
+        // Redirect to Porter logistics page with pre-filled data
+        navigate('/porter-logistics?from=contract&id=' + updatedContract.id);
+      }, 2000);
+
     } catch (e: any) {
       alert(e.message || 'Failed to sign contract');
+      setRedirecting(false);
     }
   };
 
@@ -280,9 +308,19 @@ export const ContractsPage: React.FC = () => {
                 {!selectedContract.buyer_signed && (
                   <button
                     onClick={() => handleSignContract(selectedContract.id)}
-                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded font-bold text-xs flex items-center gap-1.5 transition"
+                    disabled={redirecting}
+                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded font-bold text-xs flex items-center gap-1.5 transition disabled:opacity-50"
                   >
-                    <CheckCircle2 className="w-4 h-4" /> Sign & Book Vehicle
+                    {redirecting ? (
+                      <>
+                        <Loader className="w-4 h-4 animate-spin" />
+                        Redirecting to Logistics...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 className="w-4 h-4" /> Sign & Book Vehicle
+                      </>
+                    )}
                   </button>
                 )}
                 <button
@@ -435,6 +473,29 @@ export const ContractsPage: React.FC = () => {
               </div>
             </form>
 
+          </div>
+        </div>
+      )}
+
+      {/* Redirect Success Modal */}
+      {redirecting && (
+        <div className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white border border-emerald-300 rounded-xl p-8 shadow-2xl text-center space-y-4 max-w-md animate-in fade-in zoom-in-95 duration-200">
+            <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto">
+              <CheckCircle2 className="w-10 h-10 text-emerald-600" />
+            </div>
+            <h3 className="text-2xl font-bold text-slate-900">Contract Approved!</h3>
+            <p className="text-slate-600">Redirecting to Porter logistics for vehicle booking...</p>
+            <div className="flex items-center justify-center gap-2 text-sm text-slate-500">
+              <Loader className="w-4 h-4 animate-spin" />
+              <span>Preparing your booking details</span>
+            </div>
+            <div className="pt-4 border-t border-slate-200">
+              <div className="flex items-center justify-center gap-2 text-xs text-emerald-600">
+                <Truck className="w-4 h-4" />
+                <span className="font-bold">Auto-filling address & contact information</span>
+              </div>
+            </div>
           </div>
         </div>
       )}
