@@ -41,7 +41,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => 
     { name: 'Company Status', path: '/company/history', icon: Building2 },
     { name: 'Sell Product', path: '/sell', icon: PlusCircle },
     { name: 'Contract Panel', path: '/contracts', icon: FileText },
-    { name: 'Reverse Demands', path: '/requirements', icon: TrendingUp },
+    { name: 'Urgent Needs', path: '/requirements', icon: TrendingUp },
     { name: 'Logistics Fleet', path: '/logistics', icon: Truck },
     { name: 'Circular Impact', path: '/impact', icon: Sparkles },
     { name: 'Scenario Simulator', path: '/simulator', icon: Sliders },
