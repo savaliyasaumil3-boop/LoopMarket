@@ -8,6 +8,7 @@ import {
   Tooltip, LineChart, Line, AreaChart, Area 
 } from 'recharts';
 import { api } from '../lib/api';
+import { CircularImpactGraph } from '../components/CircularImpactGraph';
 
 export const ImpactPage: React.FC = () => {
   const [data, setData] = useState<any | null>(null);
@@ -87,41 +88,11 @@ export const ImpactPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
-        {/* Monthly Net Avoided CO2 Trend (7 cols) */}
-        <div className="lg:col-span-7 bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-            <div>
-              <h3 className="font-bold text-slate-900 text-sm">Cumulative Avoided Carbon (Tons CO2e)</h3>
-              <p className="text-slate-400 text-[11px]">Monthly trajectory across regional manufacturing clusters</p>
-            </div>
-          </div>
-
-          <div className="h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={data?.monthly_trend || []}>
-                <XAxis dataKey="month" stroke="#94a3b8" fontSize={11} />
-                <YAxis stroke="#94a3b8" fontSize={11} />
-                <Tooltip 
-                  formatter={(v: any) => [`${v} Tons CO₂e`, 'Net Avoided Carbon']}
-                  contentStyle={{ 
-                    backgroundColor: '#0F172A', 
-                    borderColor: '#334155', 
-                    borderRadius: '0.5rem', 
-                    color: '#F8FAFC', 
-                    fontSize: '11px',
-                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.3)'
-                  }}
-                  itemStyle={{ color: '#34D399', fontWeight: 600 }}
-                  labelStyle={{ color: '#F8FAFC', fontWeight: 700 }}
-                />
-                <Area type="monotone" dataKey="net_co2_saved_tons" stroke="#059669" fill="#059669" fillOpacity={0.18} />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
+      {/* Main Interactive Circular Impact Graph */}
+      <CircularImpactGraph 
+        title="Regional Circular Carbon Accounting Graph"
+        subtitle="Empirical Scope 3 GHG avoided virgin emissions & landfill diversion trajectory"
+      />
 
         {/* Category Breakdown Table (5 cols) */}
         <div className="lg:col-span-5 bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4 flex flex-col justify-between">
@@ -149,8 +120,6 @@ export const ImpactPage: React.FC = () => {
             All factors grounded in Ecoinvent 3.8 and PlasticsEurope verified life-cycle assessments.
           </div>
         </div>
-
-      </div>
 
       {/* Assumptions and Methodology Transparency Panel (Critical Requirement #22 and #46) */}
       <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4">
