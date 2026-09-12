@@ -32,6 +32,30 @@ class GeminiLayer2Service:
 
         return self._deterministic_rerank_and_explain(company_profile, candidate_materials, category_label)
 
+    async def generate_copilot_response(self, user_message: str, system_prompt: str = "") -> str:
+        if not self.api_key or len(self.api_key) < 5:
+            return "Gemini API key is not configured. Please add GEMINI_API_KEY to your environment."
+            
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={self.api_key.strip()}"
+        
+        prompt = f"{system_prompt}\n\nUser: {user_message}" if system_prompt else user_message
+        
+        payload = {
+            "contents": [{"parts": [{"text": prompt}]}]
+        }
+        headers = {"Content-Type": "application/json"}
+        
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                resp = await client.post(url, headers=headers, json=payload)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    return data["candidates"][0]["content"]["parts"][0]["text"]
+                return f"Gemini API returned error: {resp.status_code}"
+        except Exception as e:
+            print(f"[Gemini Layer 2] Copilot chat error: {e}")
+            return "I am currently unable to reach the Gemini service."
+
     def _deterministic_rerank_and_explain(
         self,
         company: Dict[str, Any],

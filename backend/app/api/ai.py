@@ -111,14 +111,14 @@ async def conversational_assistant(req: AssistantChatRequest, db: Session = Depe
     # 5. Default General Copilot
     else:
         intent = "GENERAL"
-        reply = (
-            "I am RELOOP's AI Circular Assistant. I can help you:\n" +
-            "1. Search surplus packaging lots using natural language\n" +
-            "2. Parse text/voice into Digital Material Passports\n" +
-            "3. Rank verified buyers and compute delivered costs\n" +
-            "4. Calculate freight routes and avoided CO2 emissions\n\n" +
-            "How can I assist your circular supply operations today?"
+        from app.ai.layer2_gemini import gemini_layer2
+        system_prompt = (
+            "You are RELOOP's AI Circular Assistant, an expert in circular supply chains, "
+            "packaging surplus, and sustainability. Provide helpful, concise answers to the user."
         )
+        gemini_reply = await gemini_layer2.generate_copilot_response(req.message, system_prompt=system_prompt)
+        
+        reply = gemini_reply
         suggested_actions = [
             {"label": "Explore Marketplace", "action": "NAVIGATE", "route": "/marketplace"},
             {"label": "List Your Material", "action": "NAVIGATE", "route": "/sell"},
@@ -131,3 +131,4 @@ async def conversational_assistant(req: AssistantChatRequest, db: Session = Depe
         suggested_actions=suggested_actions,
         data=data_payload
     )
+
