@@ -105,6 +105,25 @@ const DEFAULT_MARKETPLACE_MATERIALS = [
     match_score: 91,
     primary_image_url: 'https://5.imimg.com/data5/SELLER/Default/2023/2/UA/IC/MN/18884681/used-brown-paper-bag-1000x1000-500x500.jpg',
     seller: { name: 'ITC Paperboards Circular Division', trust_score: 97, city: 'Mumbai' }
+  },
+  {
+    id: 'mat-demo-106',
+    code: 'MAT-2026-7734',
+    name: 'Heavy Industrial Reconditioned Steel Drums (210L Capacity)',
+    category: 'Metal',
+    subtype: 'Steel Drums',
+    condition: 'Reusable',
+    grade: 'UN Certified Class 1',
+    quantity: 450,
+    unit: 'units',
+    quantity_kg: 6750,
+    price_per_unit: 75.00,
+    delivered_cost_per_kg: 82.00,
+    location_city: 'Ahmedabad',
+    distance_km: 22,
+    match_score: 95,
+    primary_image_url: 'https://images.unsplash.com/photo-1535813547-99c456a41d4a?w=600&q=80',
+    seller: { name: 'Ahmedabad Eco-Metal Recovery Ltd', trust_score: 96, city: 'Ahmedabad' }
   }
 ];
 
