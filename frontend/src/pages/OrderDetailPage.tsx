@@ -39,15 +39,29 @@ export const OrderDetailPage: React.FC = () => {
 
   const loadOrderDetail = async () => {
     setLoading(true);
+    let foundOrder: any = null;
+
     try {
-      const data = await api.getOrderDetail(id!);
-      setOrder(data);
-      if (data?.quantity) setReceivedQty(data.quantity);
+      foundOrder = await api.getOrderDetail(id!);
     } catch {
-      // ignore
-    } finally {
-      setLoading(false);
+      foundOrder = null;
     }
+
+    if (!foundOrder) {
+      try {
+        const stored = JSON.parse(localStorage.getItem('loopmarket_user_orders') || '[]');
+        foundOrder = stored.find((o: any) => String(o.id) === String(id) || String(o.order_id) === String(id));
+      } catch {
+        // ignore
+      }
+    }
+
+    if (foundOrder) {
+      setOrder(foundOrder);
+      if (foundOrder.quantity) setReceivedQty(foundOrder.quantity);
+    }
+
+    setLoading(false);
   };
 
   const handleAdvanceStatus = async (nextStatus: string) => {

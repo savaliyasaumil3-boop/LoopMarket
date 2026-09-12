@@ -27,7 +27,7 @@ const DEFAULT_MARKETPLACE_MATERIALS = [
     location_city: 'Ahmedabad',
     distance_km: 12,
     match_score: 98,
-    primary_image_url: 'https://images.unsplash.com/photo-1530587191325-3db32d826c18?w=600&q=80',
+    primary_image_url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR_nziRXzUSXc6T3kUuKRvzRC3S3_To35pVXtRpvLKFXA&s=10',
     seller: { name: 'ABC Manufacturing Pvt Ltd', trust_score: 96, city: 'Ahmedabad' }
   },
   {
@@ -46,7 +46,7 @@ const DEFAULT_MARKETPLACE_MATERIALS = [
     location_city: 'Vadodara',
     distance_km: 84,
     match_score: 94,
-    primary_image_url: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=600&q=80',
+    primary_image_url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTAtNGTut0Z3K1kiK2CyyKYHJ6z8F1oxWV2P4DNMTV9FQ&s=10',
     seller: { name: 'Gujarat Circular Polymers', trust_score: 94, city: 'Vadodara' }
   },
   {
@@ -65,7 +65,7 @@ const DEFAULT_MARKETPLACE_MATERIALS = [
     location_city: 'Surat',
     distance_km: 140,
     match_score: 92,
-    primary_image_url: 'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=600&q=80',
+    primary_image_url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSqxLsc-fkrLdUl1LQ8hGdaYtvyCjkFooEjc-KbOrzQaw&s=10',
     seller: { name: 'Surat Warehousing & Logistics', trust_score: 95, city: 'Surat' }
   },
   {
@@ -84,8 +84,27 @@ const DEFAULT_MARKETPLACE_MATERIALS = [
     location_city: 'Ahmedabad',
     distance_km: 18,
     match_score: 96,
-    primary_image_url: 'https://images.unsplash.com/photo-1584824486509-112e4181ff6b?w=600&q=80',
+    primary_image_url: 'https://thumbs.dreamstime.com/b/colorful-plastic-crates-background-22215640.jpg',
     seller: { name: 'Ahmedabad Eco-Logistics Ltd', trust_score: 98, city: 'Ahmedabad' }
+  },
+  {
+    id: 'mat-demo-105',
+    code: 'MAT-2026-3388',
+    name: 'Unprinted Virgin Kraft Paper Rolls & Side Offcuts',
+    category: 'Paper',
+    subtype: 'High Burst Kraft Paper',
+    condition: 'Excellent',
+    grade: '180 GSM',
+    quantity: 3200,
+    unit: 'kg',
+    quantity_kg: 3200,
+    price_per_unit: 24.00,
+    delivered_cost_per_kg: 26.50,
+    location_city: 'Mumbai',
+    distance_km: 260,
+    match_score: 91,
+    primary_image_url: 'https://5.imimg.com/data5/SELLER/Default/2023/2/UA/IC/MN/18884681/used-brown-paper-bag-1000x1000-500x500.jpg',
+    seller: { name: 'ITC Paperboards Circular Division', trust_score: 97, city: 'Mumbai' }
   }
 ];
 
