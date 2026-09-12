@@ -56,11 +56,16 @@ export const Navbar: React.FC<{
         )}
 
         {/* Mobile Brand Logo */}
-        <Link to="/dashboard" className="md:hidden shrink-0 flex items-center mr-1">
+        <Link to="/dashboard" className="md:hidden shrink-0 flex items-center gap-2 mr-1">
+          <img 
+            src="/favicon.svg" 
+            alt="LoopMarket Icon" 
+            className="h-6 w-6 rounded-md object-contain shrink-0" 
+          />
           <img 
             src="/loopmarket-logo.svg" 
             alt="LoopMarket" 
-            className="h-6 w-auto object-contain max-w-[110px]" 
+            className="h-5 w-auto object-contain max-w-[100px]" 
           />
         </Link>
 

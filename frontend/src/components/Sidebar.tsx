@@ -79,11 +79,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => 
           <div>
             {/* Brand Header */}
             <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white/95 backdrop-blur-xs z-10">
-              <Link to="/dashboard" onClick={handleNavClick} className="flex items-center gap-2">
+              <Link to="/dashboard" onClick={handleNavClick} className="flex items-center gap-2.5">
+                <img 
+                  src="/favicon.svg" 
+                  alt="LoopMarket Icon" 
+                  className="h-8 w-8 rounded-lg object-contain shadow-xs shrink-0" 
+                />
                 <img 
                   src="/loopmarket-logo.svg" 
                   alt="LoopMarket" 
-                  className="h-8 w-auto object-contain max-w-[140px]" 
+                  className="h-6 w-auto object-contain max-w-[130px]" 
                 />
               </Link>
 
