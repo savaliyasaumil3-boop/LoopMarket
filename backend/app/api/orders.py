@@ -25,6 +25,19 @@ LIFECYCLE_STEPS = [
     "COMPLETED"
 ]
 
+@router.delete("/clear")
+def clear_all_orders(db: Session = Depends(get_db)):
+    try:
+        db.query(EscrowPayment).delete()
+        db.query(LogisticsShipment).delete()
+        db.query(QualityInspection).delete()
+        db.query(Order).delete()
+        db.commit()
+        return {"message": "All backend orders cleared"}
+    except Exception as e:
+        db.rollback()
+        return {"message": str(e)}
+
 @router.get("")
 def list_orders(
     company_id: Optional[str] = None,

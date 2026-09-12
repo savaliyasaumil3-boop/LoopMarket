@@ -123,9 +123,9 @@ export const WhyMatchDrawer: React.FC<WhyMatchProps> = ({ isOpen, onClose, mater
             {onRequestOrder && (
               <button
                 onClick={() => { onClose(); onRequestOrder(); }}
-                className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded text-xs font-semibold flex items-center gap-1.5 transition"
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-xs font-bold flex items-center gap-1.5 transition shadow-sm"
               >
-                Request Material / Order <ArrowRight className="w-3.5 h-3.5" />
+                Accept Material & Place Order <ArrowRight className="w-3.5 h-3.5" />
               </button>
             )}
           </div>

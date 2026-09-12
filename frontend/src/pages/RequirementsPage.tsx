@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
   Plus, Search, ShieldCheck, MapPin, 
-  Sparkles, ArrowRight, X, Filter, Loader
+  Sparkles, ArrowRight, X, Filter, Loader, CheckCircle2
 } from 'lucide-react';
 import { api } from '../lib/api';
-import { addRequirement, fetchRequirements as fetchRequirementsFromSupabase } from '../lib/supabaseData';
+import { addRequirement, fetchRequirements as fetchRequirementsFromSupabase, addOrder } from '../lib/supabaseData';
 
 const DEFAULT_REQUIREMENTS = [
   {
@@ -67,13 +67,80 @@ const DEFAULT_REQUIREMENTS = [
 ];
 
 export const RequirementsPage: React.FC = () => {
+  const navigate = useNavigate();
   const [rawRequirements, setRawRequirements] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showPostModal, setShowPostModal] = useState(false);
   const [selectedReqMatches, setSelectedReqMatches] = useState<any | null>(null);
   const [matchingLoading, setMatchingLoading] = useState(false);
+  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+
+  const handleAcceptMaterialAndOrder = async (m: any) => {
+    setIsPlacingOrder(true);
+    try {
+      localStorage.removeItem('loopmarket_cleared');
+    } catch {
+      // ignore
+    }
+    const generatedOrderId = `ord_${Date.now()}`;
+    const matId = m.material_id || m.id || 'mat-101';
+    const matName = m.material_name || m.name || 'Circular Material Lot';
+    const unitPrice = Number(m.scores?.delivered_cost_per_kg || m.price_per_unit || 14.50);
+    const quantityKg = Number(m.quantity_kg || 5000);
+    const subtotal = quantityKg * unitPrice;
+
+    const newOrder = {
+      order_id: generatedOrderId,
+      id: generatedOrderId,
+      order_number: `ORD-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+      material_id: matId,
+      material_name: matName,
+      material_code: m.material_code || 'MAT-101',
+      material_category: m.category || 'Cardboard',
+      quantity: quantityKg,
+      quantity_kg: quantityKg,
+      unit_price: unitPrice,
+      logistics_cost: 4200.0,
+      subtotal: subtotal,
+      total_amount: subtotal + 4200.0,
+      seller_name: m.seller_name || m.seller?.name || 'Verified Enterprise Supplier',
+      seller_city: m.seller_city || m.location_city || 'Ahmedabad',
+      status: 'ORDER_CONFIRMED',
+      created_at: new Date().toISOString()
+    };
+
+    try {
+      const existing = JSON.parse(localStorage.getItem('loopmarket_user_orders') || '[]');
+      localStorage.setItem('loopmarket_user_orders', JSON.stringify([newOrder, ...existing]));
+    } catch {
+      // ignore
+    }
+
+    try {
+      await addOrder(newOrder).catch(() => null);
+    } catch {
+      // ignore
+    }
+
+    try {
+      const res = await api.createOrder({
+        material_id: matId,
+        quantity: quantityKg,
+        unit_price: unitPrice,
+        logistics_cost: 4200.0
+      }).catch(() => null);
+
+      const targetId = res?.order_id || generatedOrderId;
+      navigate(`/orders/${targetId}`);
+    } catch {
+      navigate(`/orders/${generatedOrderId}`);
+    } finally {
+      setIsPlacingOrder(false);
+      setSelectedReqMatches(null);
+    }
+  };
 
   // New Requirement Form State
   const [title, setTitle] = useState('Seeking Monthly Baled OCC Grade 11 Boxes');
@@ -437,12 +504,21 @@ export const RequirementsPage: React.FC = () => {
                       <p className="text-emerald-700 font-semibold mt-1">Delivered: ₹{m.scores?.delivered_cost_per_kg || m.price_per_unit}/kg</p>
                     </div>
 
-                    <Link
-                      to={`/materials/${m.material_id || m.id}`}
-                      className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded text-xs font-semibold shrink-0"
-                    >
-                      View & Transact
-                    </Link>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        onClick={() => handleAcceptMaterialAndOrder(m)}
+                        disabled={isPlacingOrder}
+                        className="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-xs font-bold flex items-center gap-1 transition shadow-sm"
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5" /> Accept Material & Order
+                      </button>
+                      <Link
+                        to={`/materials/${m.material_id || m.id}`}
+                        className="px-3 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded text-xs font-semibold"
+                      >
+                        View Details
+                      </Link>
+                    </div>
                   </div>
                 ))
               )}

@@ -6,7 +6,7 @@ import {
   Database, Award, Clock, AlertTriangle, Layers, Lock, Building2, Package, RefreshCw, ChevronRight
 } from 'lucide-react';
 import { api } from '../lib/api';
-import { fetchMaterials as fetchMaterialsFromSupabase } from '../lib/supabaseData';
+import { fetchMaterials as fetchMaterialsFromSupabase, addOrder } from '../lib/supabaseData';
 import { MaterialPassportModal } from '../components/MaterialPassportModal';
 import { WhyMatchDrawer } from '../components/WhyMatchDrawer';
 
@@ -220,6 +220,11 @@ export const MaterialDetailPage: React.FC = () => {
   const handlePlaceOrder = async () => {
     if (!material) return;
     setIsPlacingOrder(true);
+    try {
+      localStorage.removeItem('loopmarket_cleared');
+    } catch {
+      // ignore
+    }
 
     const generatedOrderId = `ord_${Date.now()}`;
     const newOrder = {
@@ -246,6 +251,12 @@ export const MaterialDetailPage: React.FC = () => {
     try {
       const existingOrders = JSON.parse(localStorage.getItem('loopmarket_user_orders') || '[]');
       localStorage.setItem('loopmarket_user_orders', JSON.stringify([newOrder, ...existingOrders]));
+    } catch {
+      // ignore
+    }
+
+    try {
+      await addOrder(newOrder).catch(() => null);
     } catch {
       // ignore
     }
