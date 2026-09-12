@@ -36,6 +36,7 @@ const DEFAULT_ANALYTICS = {
 export const CompanyHistoryPage: React.FC = () => {
   const { company } = useAuth();
   const [analytics, setAnalytics] = useState<any>(DEFAULT_ANALYTICS);
+  const [contracts, setContracts] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [animKey, setAnimKey] = useState(0);
 
@@ -49,10 +50,20 @@ export const CompanyHistoryPage: React.FC = () => {
             setAnimKey(prev => prev + 1);
           }
         })
-        .catch(() => {
-          // Keep default analytics
-        })
+        .catch(() => {})
         .finally(() => setLoading(false));
+
+      api.getContracts()
+        .then(contractData => {
+          const companyContracts = (contractData || []).filter((contract: any) => (
+            contract.seller?.id === company.id ||
+            contract.buyer?.id === company.id ||
+            contract.seller_id === company.id ||
+            contract.buyer_id === company.id
+          ));
+          setContracts(companyContracts);
+        })
+        .catch(() => setContracts([]));
     }
   }, [company?.id]);
 
@@ -62,12 +73,29 @@ export const CompanyHistoryPage: React.FC = () => {
 
   const COLORS = ['#0F172A', '#059669', '#3B82F6', '#D97706'];
 
-  const timelineSteps = [
+  const fallbackTimelineSteps = [
     { type: 'BUY', material: 'Clean Corrugated Cardboard (OCC 11)', qty: '5,000 kg', partner: 'Navrang Corrugators', date: 'Sep 08, 2026', price: '₹72,500' },
     { type: 'SELL', material: 'Sorted PP Returnable Crates', qty: '2,000 kg', partner: 'GreenPack Industries', date: 'Aug 24, 2026', price: '₹84,000' },
     { type: 'BUY', material: 'Euro Standard Wooden Pallets', qty: '400 units', partner: 'Vadodara Pallet Fleet', date: 'Aug 10, 2026', price: '₹128,000' },
     { type: 'SELL', material: 'Baled LDPE Stretch Wrap (98/2)', qty: '3,500 kg', partner: 'Gujarat Circular Polymers', date: 'Jul 28, 2026', price: '₹127,750' },
   ];
+
+  const timelineSteps = contracts.length > 0
+    ? contracts.map((contract: any) => {
+      const seller = contract.seller || {};
+      const buyer = contract.buyer || {};
+      const isSeller = seller.id === company?.id || contract.seller_id === company?.id;
+      const partner = isSeller ? buyer : seller;
+      return {
+        type: isSeller ? 'SELL' : 'BUY',
+        material: contract.material_name || 'Contracted material',
+        qty: `${Number(contract.quantity_kg || 0).toLocaleString()} kg`,
+        partner: partner.name || (isSeller ? contract.buyer_name : contract.seller_name) || 'Contract partner',
+        date: contract.created_at ? new Date(contract.created_at).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : 'Active Now',
+        price: `₹${Number(contract.total_amount || 0).toLocaleString()}`,
+      };
+    })
+    : fallbackTimelineSteps;
 
   return (
     <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-6 text-xs font-sans">

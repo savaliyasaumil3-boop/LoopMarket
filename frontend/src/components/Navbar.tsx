@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { 
-  Search, Bell, ShieldCheck, MapPin, User, LogOut, 
-  ChevronDown, Building2, ExternalLink, Sparkles, Menu, Package 
+  Search, Bell, ShieldCheck, MapPin, User, LogOut,
+  ChevronDown, Building2, ExternalLink, Sparkles, Menu, Package
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 

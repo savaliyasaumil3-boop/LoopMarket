@@ -26,8 +26,9 @@ export const DashboardPage: React.FC = () => {
   const loadDashboardData = async () => {
     setLoading(true);
     try {
+      const activeCompanyId = company?.id || 'ce3ff009-ee02-4229-b53c-4709c0c35bc0';
       const [recData, ordersData] = await Promise.all([
-        api.getRecommendations(company?.id),
+        api.getRecommendations(activeCompanyId),
         api.getOrders()
       ]);
       setRecommendations(recData?.sections || []);
@@ -123,7 +124,7 @@ export const DashboardPage: React.FC = () => {
       </div>
 
       {/* SIGNATURE: Interactive Circular Supply Loop Workflow (Handwritten Page 3) */}
-      <SupplyLoopGraph companyId={company?.id} />
+      <SupplyLoopGraph companyId={company?.id || 'ce3ff009-ee02-4229-b53c-4709c0c35bc0'} />
 
       {/* Circular Impact & Avoided Carbon Graph */}
       <CircularImpactGraph 
