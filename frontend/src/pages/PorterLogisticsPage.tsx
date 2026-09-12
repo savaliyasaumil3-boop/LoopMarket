@@ -22,23 +22,32 @@ export const PorterLogisticsPage: React.FC = () => {
 
   // Check for contract booking data
   useEffect(() => {
+    console.log('🔍 Porter page loaded, checking for contract data...');
     const contractData = sessionStorage.getItem('contract_booking_data');
+    console.log('📦 Raw contract data:', contractData);
+
     if (contractData) {
       try {
         const data = JSON.parse(contractData);
-        // Pre-fill form with contract data
-        setPickupName(data.pickup_name);
-        setPickupPhone(data.pickup_phone);
-        setPickupAddress(data.pickup_address);
-        setPickupCity(data.pickup_city);
-        setDropName(data.delivery_name);
-        setDropPhone(data.delivery_phone);
-        setDropAddress(data.delivery_address);
-        setDropCity(data.delivery_city);
-        setCustomerName(data.customer_name);
+        console.log('✅ Parsed contract data:', data);
 
-        // Clear the session storage
-        sessionStorage.removeItem('contract_booking_data');
+        // Pre-fill form with contract data
+        if (data.pickup_name) setPickupName(data.pickup_name);
+        if (data.pickup_phone) setPickupPhone(data.pickup_phone);
+        if (data.pickup_address) setPickupAddress(data.pickup_address);
+        if (data.pickup_city) setPickupCity(data.pickup_city);
+        if (data.pickup_state) setPickupState(data.pickup_state);
+        if (data.pickup_pincode) setPickupPincode(data.pickup_pincode);
+
+        if (data.delivery_name) setDropName(data.delivery_name);
+        if (data.delivery_phone) setDropPhone(data.delivery_phone);
+        if (data.delivery_address) setDropAddress(data.delivery_address);
+        if (data.delivery_city) setDropCity(data.delivery_city);
+        if (data.delivery_state) setDropState(data.delivery_state);
+        if (data.delivery_pincode) setDropPincode(data.delivery_pincode);
+
+        if (data.customer_name) setCustomerName(data.customer_name);
+        if (data.customer_phone) setCustomerPhone(data.customer_phone);
 
         // Show success notification
         setContractInfo({
@@ -46,16 +55,24 @@ export const PorterLogisticsPage: React.FC = () => {
           material_name: data.material_name,
           quantity_kg: data.quantity_kg
         });
+
+        console.log('✅ Form pre-filled successfully!');
+
+        // Clear the session storage after reading
+        sessionStorage.removeItem('contract_booking_data');
+        console.log('🧹 Session storage cleared');
       } catch (err) {
-        console.error('Failed to parse contract data:', err);
+        console.error('❌ Failed to parse contract data:', err);
       }
+    } else {
+      console.log('ℹ️ No contract data found - normal entry');
     }
   }, []);
 
   // Pickup Details
-  const [pickupName, setPickupName] = useState('Warehouse Manager');
-  const [pickupPhone, setPickupPhone] = useState('9876543210');
-  const [pickupAddress, setPickupAddress] = useState('Plot 123, GIDC Estate');
+  const [pickupName, setPickupName] = useState('');
+  const [pickupPhone, setPickupPhone] = useState('');
+  const [pickupAddress, setPickupAddress] = useState('');
   const [pickupCity, setPickupCity] = useState('Ahmedabad');
   const [pickupState, setPickupState] = useState('Gujarat');
   const [pickupPincode, setPickupPincode] = useState('380026');
@@ -63,9 +80,9 @@ export const PorterLogisticsPage: React.FC = () => {
   const [pickupLng, setPickupLng] = useState(72.5714);
 
   // Drop Details
-  const [dropName, setDropName] = useState('Receiving Manager');
-  const [dropPhone, setDropPhone] = useState('9876543211');
-  const [dropAddress, setDropAddress] = useState('Factory Road, Industrial Area');
+  const [dropName, setDropName] = useState('');
+  const [dropPhone, setDropPhone] = useState('');
+  const [dropAddress, setDropAddress] = useState('');
   const [dropCity, setDropCity] = useState('Vadodara');
   const [dropState, setDropState] = useState('Gujarat');
   const [dropPincode, setDropPincode] = useState('390001');
@@ -73,8 +90,8 @@ export const PorterLogisticsPage: React.FC = () => {
   const [dropLng, setDropLng] = useState(73.1812);
 
   // Customer Details
-  const [customerName, setCustomerName] = useState('RELOOP Logistics');
-  const [customerPhone, setCustomerPhone] = useState('9876543212');
+  const [customerName, setCustomerName] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
 
   // Step 2: Quote Results
   const [quotes, setQuotes] = useState<VehicleQuote[]>([]);
@@ -709,13 +726,19 @@ export const PorterLogisticsPage: React.FC = () => {
 
               {/* Map */}
               <div className="h-96 rounded-lg overflow-hidden mb-4">
-                <GoogleMapsView
-                  origin={{ lat: pickupLat, lng: pickupLng, name: pickupCity }}
-                  destination={{ lat: dropLat, lng: dropLng, name: dropCity }}
-                  showRoute={true}
-                  showLiveTracking={true}
-                  vehicleLocation={trackingData.current_location || { lat: pickupLat, lng: pickupLng }}
-                />
+                {pickupLat && pickupLng && dropLat && dropLng ? (
+                  <GoogleMapsView
+                    origin={{ lat: pickupLat, lng: pickupLng, name: pickupCity }}
+                    destination={{ lat: dropLat, lng: dropLng, name: dropCity }}
+                    showRoute={true}
+                    showLiveTracking={true}
+                    vehicleLocation={trackingData?.current_location || { lat: pickupLat + (dropLat - pickupLat) * 0.5, lng: pickupLng + (dropLng - pickupLng) * 0.5 }}
+                  />
+                ) : (
+                  <div className="w-full h-full bg-slate-100 flex items-center justify-center">
+                    <p className="text-slate-500">Loading map...</p>
+                  </div>
+                )}
               </div>
 
               {/* Driver Details */}
