@@ -24,6 +24,7 @@ import { SimulatorPage } from './pages/SimulatorPage';
 import { AssistantPage } from './pages/AssistantPage';
 import { AdminDemoPage } from './pages/AdminDemoPage';
 import { YourListingsPage } from './pages/YourListingsPage';
+import { PorterLogisticsPage } from './pages/PorterLogisticsPage';
 
 const AppLayout: React.FC = () => {
   const [showNotifications, setShowNotifications] = useState(false);
@@ -143,6 +144,7 @@ export const App: React.FC = () => {
             <Route path="/company" element={<CompanyHistoryPage />} />
             <Route path="/company/history" element={<CompanyHistoryPage />} />
             <Route path="/logistics" element={<LogisticsPage />} />
+            <Route path="/porter-logistics" element={<PorterLogisticsPage />} />
             <Route path="/recommendations" element={<DashboardPage />} />
             <Route path="/impact" element={<ImpactPage />} />
             <Route path="/simulator" element={<SimulatorPage />} />
