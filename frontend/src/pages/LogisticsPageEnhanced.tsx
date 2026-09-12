@@ -11,7 +11,7 @@ import { VehicleTracker } from '../components/VehicleTracker';
 export const LogisticsPage: React.FC = () => {
   const [shipments, setShipments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeView, setActiveView] = useState<'calculator' | 'tracking' | 'booking'>('calculator');
+  const [activeView, setActiveView] = useState<'calculator' | 'booking'>('calculator');
 
   // Instant Quote Calculator State
   const [originCity, setOriginCity] = useState('Ahmedabad');
@@ -167,17 +167,6 @@ export const LogisticsPage: React.FC = () => {
           Route Calculator
         </button>
         <button
-          onClick={() => setActiveView('tracking')}
-          className={`flex-1 px-4 py-2.5 rounded-lg font-bold text-xs transition flex items-center justify-center gap-2 ${
-            activeView === 'tracking'
-              ? 'bg-slate-900 text-white'
-              : 'bg-transparent text-slate-600 hover:bg-slate-50'
-          }`}
-        >
-          <Truck className="w-4 h-4" />
-          Live Tracking
-        </button>
-        <button
           onClick={() => setActiveView('booking')}
           className={`flex-1 px-4 py-2.5 rounded-lg font-bold text-xs transition flex items-center justify-center gap-2 ${
             activeView === 'booking'
@@ -306,22 +295,6 @@ export const LogisticsPage: React.FC = () => {
             />
           </div>
 
-        </div>
-      )}
-
-      {/* Live Tracking View */}
-      {activeView === 'tracking' && shipments.length > 0 && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {shipments.map((shipment) => (
-            <VehicleTracker
-              key={shipment.id}
-              shipmentId={shipment.id}
-              origin={{ ...cityCoordinates[shipment.origin], name: shipment.origin }}
-              destination={{ ...cityCoordinates[shipment.destination], name: shipment.destination }}
-              driverInfo={shipment.driver}
-              estimatedArrival={shipment.eta}
-            />
-          ))}
         </div>
       )}
 

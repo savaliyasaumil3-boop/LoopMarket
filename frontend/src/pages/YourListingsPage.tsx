@@ -8,6 +8,7 @@ import {
 import { api } from '../lib/api';
 import { deleteMaterial, fetchMaterials } from '../lib/supabaseData';
 import { useAuth } from '../context/AuthContext';
+import { MaterialPassportModal } from '../components/MaterialPassportModal';
 
 export const YourListingsPage: React.FC = () => {
   const { company } = useAuth();
