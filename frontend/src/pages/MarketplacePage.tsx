@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { 
   Search, Filter, Sparkles, ShieldCheck, MapPin, 
@@ -128,6 +128,7 @@ export const MarketplacePage: React.FC = () => {
   // Modals
   const [selectedWhyMaterial, setSelectedWhyMaterial] = useState<any | null>(null);
   const [selectedPassportMaterial, setSelectedPassportMaterial] = useState<any | null>(null);
+  const fetchRequestRef = useRef(0);
 
   useEffect(() => {
     fetchMaterials();
@@ -140,6 +141,7 @@ export const MarketplacePage: React.FC = () => {
   }, [initialSearch]);
 
   const fetchMaterials = async () => {
+    const requestId = ++fetchRequestRef.current;
     setLoading(true);
 
     // 1. Read from LocalStorage (user uploaded lots)
@@ -158,10 +160,17 @@ export const MarketplacePage: React.FC = () => {
       console.warn('Supabase marketplace load notice:', e);
     }
 
-    // 3. Fetch from FastAPI Backend API
+    // 3. Fetch from FastAPI Backend API with the active server-side filters.
     let apiData: any[] = [];
     try {
-      apiData = (await api.getMaterials().catch(() => [])) || [];
+      apiData = (await api.getMaterials({
+        category: selectedCategory,
+        condition: selectedCondition,
+        city: selectedCity,
+        max_price: maxPrice < 100 ? maxPrice : undefined,
+        sort_by: sortBy,
+        search: nlQuery.trim() && !appliedNlFilters ? nlQuery.trim() : undefined,
+      }).catch(() => [])) || [];
     } catch (e) {
       console.warn('Backend marketplace load notice:', e);
     }
@@ -169,8 +178,10 @@ export const MarketplacePage: React.FC = () => {
     // Combine into deduplicated map
     const map = new Map<string, any>();
 
-    // Add default materials first
-    DEFAULT_MARKETPLACE_MATERIALS.forEach(item => map.set(String(item.id), item));
+    // Use demo inventory only when both persistence sources are unavailable.
+    if (!apiData.length && !sbData.length && !cachedListings.length) {
+      DEFAULT_MARKETPLACE_MATERIALS.forEach(item => map.set(String(item.id), item));
+    }
 
     // Overwrite with API, Supabase, and localStorage listings
     apiData.forEach(item => map.set(String(item.id), item));
@@ -236,8 +247,10 @@ export const MarketplacePage: React.FC = () => {
       allLots.sort((a, b) => Number(b.match_score) - Number(a.match_score));
     }
 
-    setMaterials(allLots);
-    setLoading(false);
+    if (requestId === fetchRequestRef.current) {
+      setMaterials(allLots);
+      setLoading(false);
+    }
   };
 
   const handleNlSearch = async (textToSearch?: string) => {
@@ -260,7 +273,6 @@ export const MarketplacePage: React.FC = () => {
       // ignore
     } finally {
       setIsParsingNl(false);
-      fetchMaterials();
     }
   };
 
