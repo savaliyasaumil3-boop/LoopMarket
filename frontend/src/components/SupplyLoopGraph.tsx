@@ -1,387 +1,390 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  ArrowRight, RefreshCw, CheckCircle2, ShieldCheck, 
-  ExternalLink, Building2, Package, Sparkles, Layers, ArrowUpRight
-} from 'lucide-react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  Background,
+  Controls,
+  Handle,
+  MarkerType,
+  MiniMap,
+  Position,
+  ReactFlow,
+  type Edge,
+  type Node,
+} from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
+import { ArrowRight, Building2, CheckCircle2, RefreshCw, ShieldCheck, Sparkles } from 'lucide-react';
 import { api } from '../lib/api';
+import { supabase } from '../lib/supabaseClient';
 
-interface GraphNode {
-  id: string;
-  type: string;
-  name: string;
+type CompanyWorkflowNodeData = {
+  label: string;
   role: string;
   city: string;
-  material: string;
-  active_contract: string;
-  current_price: string;
+  company_type: string;
   trust_score: number;
-  flow_type?: string;
-  position?: { x: number; y: number };
-}
-
-interface GraphEdge {
-  source: string;
-  target: string;
-  label: string;
-  rate: string;
   status: string;
-}
+  relationship: string;
+};
 
-export const SupplyLoopGraph: React.FC<{ companyId?: string }> = ({ companyId }) => {
-  const [data, setData] = useState<{ nodes: GraphNode[]; edges: GraphEdge[] } | null>(null);
-  const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    loadGraphData();
-  }, [companyId]);
-
-  const loadGraphData = async () => {
-    setLoading(true);
-    try {
-      const res = await api.getCircularLoop(companyId || 'my-company');
-      setData(res);
-      if (res?.nodes?.length) {
-        setSelectedNode(res.nodes[0]); // default select central hub
-      }
-    } catch {
-      // Fallback data
-      const defaultNodes: GraphNode[] = [
-        {
-          id: "my-company",
-          type: "central_hub",
-          name: "ABC Manufacturing Pvt Ltd",
-          role: "My Facility (Consolidation & Sorting)",
-          city: "Ahmedabad",
-          material: "High-Grade Baled Cardboard (OCC 11)",
-          active_contract: "CTR-2026-MAIN",
-          current_price: "₹16.50/kg",
-          trust_score: 96.0
-        },
-        {
-          id: "supplier-1",
-          type: "upstream_supplier",
-          name: "Navrang Corrugators",
-          role: "Upstream Supplier (Manufacturing)",
-          city: "Ahmedabad",
-          material: "Clean Surplus Corrugated Trims",
-          active_contract: "CTR-2026-IN-101",
-          current_price: "₹13.50/kg",
-          trust_score: 91.0,
-          flow_type: "INFLOW_BUY"
-        },
-        {
-          id: "buyer-1",
-          type: "downstream_buyer",
-          name: "GreenPack Industries Ltd",
-          role: "Downstream Buyer (Packaging)",
-          city: "Vadodara",
-          material: "Sorted Baled Packaging Boxes",
-          active_contract: "CTR-2026-OUT-201",
-          current_price: "₹18.00/kg",
-          trust_score: 94.0,
-          flow_type: "OUTFLOW_SELL"
-        },
-        {
-          id: "recycler-1",
-          type: "closed_loop_recycler",
-          name: "Gujarat Circular Polymers & Pulp",
-          role: "Closed-Loop Secondary Processor",
-          city: "Surat",
-          material: "Secondary Pulp & Regrind Resins",
-          active_contract: "CTR-2026-REC-301",
-          current_price: "₹12.00/kg",
-          trust_score: 92.0,
-          flow_type: "CLOSED_LOOP"
-        }
-      ];
-      const defaultEdges: GraphEdge[] = [
-        {"source": "supplier-1", "target": "my-company", "label": "BUY (5,000 kg/mo)", "rate": "₹13.50/kg", "status": "ACTIVE_FLOW"},
-        {"source": "my-company", "target": "buyer-1", "label": "SELL (4,500 kg/mo)", "rate": "₹18.00/kg", "status": "ACTIVE_FLOW"},
-        {"source": "my-company", "target": "recycler-1", "label": "REPROCESS (1,500 kg/mo)", "rate": "₹12.00/kg", "status": "CLOSED_LOOP"},
-        {"source": "recycler-1", "target": "supplier-1", "label": "RECIRCULATE", "rate": "Feedstock", "status": "CIRCULAR_LINK"}
-      ];
-      setData({ nodes: defaultNodes, edges: defaultEdges });
-      setSelectedNode(defaultNodes[0]);
-    } finally {
-      setLoading(false);
-    }
+type WorkflowGraphResponse = {
+  company_id?: string;
+  company_name?: string;
+  nodes?: any[];
+  edges?: any[];
+  summary?: {
+    connected_companies?: number;
+    active_suppliers?: number;
+    active_buyers?: number;
+    pending_requests?: number;
+    active_material_flows?: number;
+    in_transit_orders?: number;
+    completed_transactions?: number;
   };
+};
 
-  const suppliers = data?.nodes.filter(n => n.type === 'upstream_supplier') || [];
-  const centralHub = data?.nodes.find(n => n.type === 'central_hub');
-  const buyers = data?.nodes.filter(n => n.type === 'downstream_buyer') || [];
-  const recyclers = data?.nodes.filter(n => n.type === 'closed_loop_recycler') || [];
+const statusColors: Record<string, string> = {
+  active: '#22c55e',
+  pending: '#f59e0b',
+  accepted: '#3b82f6',
+  completed: '#8b5cf6',
+  rejected: '#ef4444',
+  cancelled: '#64748b',
+};
+
+const CompanyWorkflowNode = (props: any) => {
+  const workflowData = (props?.data ?? {}) as CompanyWorkflowNodeData;
+  const tone = statusColors[String(workflowData.status || 'active').toLowerCase()] || '#22c55e';
 
   return (
-    <div className="bg-white border border-slate-200 rounded-xl p-4 sm:p-6 shadow-sm">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-slate-100">
-        <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
-            <h3 className="text-base font-bold text-slate-900 tracking-tight">Interactive Circular Supply Loop Workflow</h3>
-            <span className="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-mono font-medium">n8n Node Engine</span>
-          </div>
-          <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-            Real-time material flows across Upstream Suppliers, Your Sorting Hub, Downstream Buyers, and Secondary Recyclers. Click any node to inspect live contract & material price specs.
-          </p>
+    <div className="min-w-[180px] rounded-xl border border-slate-200 bg-white shadow-lg">
+      <Handle type="target" position={Position.Left} className="!h-3 !w-3 !border-2 !border-white !bg-slate-900" />
+      <div className="flex items-center justify-between gap-2 rounded-t-xl border-b border-slate-100 px-3 py-2" style={{ backgroundColor: `${tone}18` }}>
+        <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.12em] text-slate-700">
+          <Building2 className="h-3.5 w-3.5" style={{ color: tone }} />
+          {workflowData.role}
         </div>
-        <div className="flex items-center gap-2 shrink-0 self-start md:self-auto">
-          <button 
-            onClick={loadGraphData} 
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-slate-200 rounded-md hover:bg-slate-50 transition cursor-pointer"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 text-slate-500 ${loading ? 'animate-spin' : ''}`} />
-            <span>Refresh Loop Flow</span>
-          </button>
+        <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: tone }} />
+      </div>
+
+      <div className="space-y-2 p-3">
+        <div className="text-sm font-bold text-slate-900">{workflowData.label}</div>
+        <div className="text-[11px] text-slate-500">{workflowData.city}</div>
+        <div className="text-[10px] font-mono text-slate-500">{workflowData.company_type}</div>
+        <div className="flex items-center justify-between rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-[10px] text-slate-600">
+          <span>Trust</span>
+          <span className="font-bold text-emerald-700">{workflowData.trust_score}/100</span>
+        </div>
+        <div className="rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-[10px] text-slate-600">
+          {String(workflowData.status || 'ACTIVE').toUpperCase()} · {workflowData.relationship}
         </div>
       </div>
 
-      {/* Main Visual Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6">
-        {/* Visual Node Graph Canvas (8 cols) */}
-        <div className="lg:col-span-8 bg-slate-950 text-white rounded-lg p-4 sm:p-6 relative overflow-hidden border border-slate-800 min-h-[380px] sm:min-h-[420px] flex flex-col justify-between">
-          
-          {/* Subtle Grid Background */}
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:24px_24px] opacity-25"></div>
+      <Handle type="source" position={Position.Right} className="!h-3 !w-3 !border-2 !border-white !bg-slate-900" />
+    </div>
+  );
+};
 
-          {/* Top Row: Stream Indicators */}
-          <div className="relative z-10 flex flex-col sm:flex-row justify-between gap-1 sm:gap-2 text-[10px] sm:text-xs font-mono text-slate-400 pb-2 border-b border-slate-800">
-            <span>[1] UPSTREAM SUPPLY</span>
-            <span>[2] VALUE RETENTION HUB</span>
-            <span>[3] OFFTAKE & RECYCLING</span>
+const nodeTypes: any = {
+  centerNode: CompanyWorkflowNode,
+  supplierNode: CompanyWorkflowNode,
+  buyerNode: CompanyWorkflowNode,
+  recyclerNode: CompanyWorkflowNode,
+  logisticsNode: CompanyWorkflowNode,
+};
+
+export const SupplyLoopGraph: React.FC<{ companyId?: string }> = ({ companyId }) => {
+  const [data, setData] = useState<WorkflowGraphResponse | null>(null);
+  const [selectedNode, setSelectedNode] = useState<any | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const loadGraphData = useCallback(async () => {
+    if (!companyId) return;
+
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await api.getCircularLoop(companyId);
+      setData(res);
+      if (res?.nodes?.length) {
+        const fallbackNode = res.nodes.find((node: any) => node.id === 'my-company') || res.nodes[0];
+        setSelectedNode(fallbackNode);
+      }
+    } catch (requestError) {
+      setData(null);
+      setSelectedNode(null);
+      setError(requestError instanceof Error ? requestError.message : 'Unable to load live company relationships.');
+    } finally {
+      setLoading(false);
+    }
+  }, [companyId]);
+
+  useEffect(() => {
+    loadGraphData();
+  }, [loadGraphData]);
+
+  useEffect(() => {
+    if (!companyId || !supabase) return;
+
+    const channel = supabase.channel(`workflow-${companyId}`);
+    const refresh = () => loadGraphData();
+
+    channel.on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'company_relationships', filter: `from_company_id=eq.${companyId}` },
+      refresh
+    );
+
+    channel.on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'company_relationships', filter: `to_company_id=eq.${companyId}` },
+      refresh
+    );
+
+    channel.subscribe();
+
+    return () => {
+      channel.unsubscribe();
+    };
+  }, [companyId, loadGraphData]);
+
+  const nodes = useMemo<Node[]>(() => {
+    const rawNodes = (data?.nodes || []).map((node: any) => {
+      const type =
+        node.type === 'central_hub'
+          ? 'centerNode'
+          : node.type === 'upstream_supplier' || node.type === 'supplier'
+            ? 'supplierNode'
+            : node.type === 'downstream_buyer' || node.type === 'buyer'
+              ? 'buyerNode'
+              : node.type === 'closed_loop_recycler'
+                ? 'recyclerNode'
+                : node.type === 'logistics'
+                  ? 'logisticsNode'
+                  : 'supplierNode';
+
+      return {
+        id: node.id,
+        type,
+        position: { x: 0, y: 0 },
+        data: {
+          label: node.data?.label || node.name || 'Company',
+          role: type === 'supplierNode' ? 'Seller' : type === 'buyerNode' ? 'Buyer' : node.data?.role || node.role || 'Connected Company',
+          city: node.data?.city || node.city || 'Location',
+          company_type: node.data?.company_type || node.company_type || 'Business Partner',
+          trust_score: node.data?.trust_score ?? node.trust_score ?? 90,
+          status: (node.data?.status || node.status || 'active').toLowerCase(),
+          relationship: node.data?.relationship || node.flow_type || 'connected',
+        },
+      };
+    });
+
+    const suppliers = rawNodes.filter((node) => node.type === 'supplierNode');
+    const buyers = rawNodes.filter((node) => node.type === 'buyerNode');
+    const recyclers = rawNodes.filter((node) => node.type === 'recyclerNode' || node.type === 'logisticsNode');
+
+    return rawNodes.map((node) => {
+      if (node.type === 'centerNode') {
+        return { ...node, position: { x: 450, y: 240 } };
+      }
+
+      if (node.type === 'supplierNode') {
+        return { ...node, position: { x: 40, y: 70 + suppliers.indexOf(node) * 150 } };
+      }
+
+      if (node.type === 'buyerNode') {
+        return { ...node, position: { x: 820, y: 70 + buyers.indexOf(node) * 150 } };
+      }
+
+      return {
+        ...node,
+        position: { x: 300 + recyclers.indexOf(node) * 220, y: 500 },
+      };
+    });
+  }, [data]);
+
+  const graphHeight = Math.max(
+    560,
+    Math.max(
+      nodes.filter((node) => node.type === 'supplierNode').length,
+      nodes.filter((node) => node.type === 'buyerNode').length,
+    ) * 150 + 120,
+  );
+
+  const edges = useMemo<Edge[]>(() => {
+    return (data?.edges || []).map((edge: any) => ({
+      id: edge.id || `${edge.source}-${edge.target}`,
+      source: edge.source,
+      target: edge.target,
+      label: edge.label || edge.rate || 'Relationship',
+      animated: Boolean(edge.animated ?? true),
+      type: 'smoothstep',
+      style: edge.style || { stroke: '#22c55e', strokeWidth: 2.5 },
+      markerEnd: edge.markerEnd || { type: MarkerType.ArrowClosed, color: '#22c55e' },
+      labelStyle: { fill: '#1f2937', fontSize: 11, fontWeight: 700 },
+    }));
+  }, [data]);
+
+  const summary = data?.summary || {
+    connected_companies: Math.max((data?.nodes?.length || 1) - 1, 0),
+    active_suppliers: 1,
+    active_buyers: 1,
+    pending_requests: 0,
+    active_material_flows: 1,
+    in_transit_orders: 0,
+    completed_transactions: 0,
+  };
+
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+      <div className="mb-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+          <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.18em] text-slate-500">
+            <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+            Live circular workflow
           </div>
-
-          {/* Middle Interactive Nodes Layout */}
-          <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 items-center my-auto py-4">
-            
-            <style>{`
-              @keyframes flowLine {
-                from { stroke-dashoffset: 12; }
-                to { stroke-dashoffset: 0; }
-              }
-              .animate-flow {
-                animation: flowLine 1s linear infinite;
-              }
-            `}</style>
-
-            {/* Connection Lines Overlay */}
-            <div className="absolute inset-0 z-0 hidden md:block pointer-events-none">
-              <svg className="w-full h-full overflow-visible">
-                {/* Suppliers to Hub */}
-                <line x1="25%" y1="32%" x2="35%" y2="32%" stroke="#34d399" strokeWidth="2" strokeDasharray="6 6" strokeLinecap="round" className="animate-flow" />
-                <line x1="35%" y1="32%" x2="35%" y2="50%" stroke="#34d399" strokeWidth="2" strokeDasharray="6 6" strokeLinecap="round" className="animate-flow" />
-                
-                <line x1="25%" y1="68%" x2="35%" y2="68%" stroke="#34d399" strokeWidth="2" strokeDasharray="6 6" strokeLinecap="round" className="animate-flow" />
-                <line x1="35%" y1="68%" x2="35%" y2="50%" stroke="#34d399" strokeWidth="2" strokeDasharray="6 6" strokeLinecap="round" className="animate-flow" />
-                
-                <line x1="35%" y1="50%" x2="50%" y2="50%" stroke="#34d399" strokeWidth="2" strokeDasharray="6 6" strokeLinecap="round" className="animate-flow" />
-                
-                {/* Hub to Buyers */}
-                <line x1="50%" y1="49%" x2="65%" y2="49%" stroke="#60a5fa" strokeWidth="2" strokeDasharray="6 6" strokeLinecap="round" className="animate-flow" />
-                <line x1="65%" y1="49%" x2="65%" y2="18%" stroke="#60a5fa" strokeWidth="2" strokeDasharray="6 6" strokeLinecap="round" className="animate-flow" />
-                <line x1="65%" y1="18%" x2="75%" y2="18%" stroke="#60a5fa" strokeWidth="2" strokeDasharray="6 6" strokeLinecap="round" className="animate-flow" />
-                
-                <line x1="65%" y1="49%" x2="75%" y2="49%" stroke="#60a5fa" strokeWidth="2" strokeDasharray="6 6" strokeLinecap="round" className="animate-flow" />
-                
-                {/* Hub to Recycler */}
-                <line x1="50%" y1="51%" x2="65%" y2="51%" stroke="#fbbf24" strokeWidth="2" strokeDasharray="6 6" strokeLinecap="round" className="animate-flow" />
-                <line x1="65%" y1="51%" x2="65%" y2="82%" stroke="#fbbf24" strokeWidth="2" strokeDasharray="6 6" strokeLinecap="round" className="animate-flow" />
-                <line x1="65%" y1="82%" x2="75%" y2="82%" stroke="#fbbf24" strokeWidth="2" strokeDasharray="6 6" strokeLinecap="round" className="animate-flow" />
-              </svg>
-            </div>
-
-            {/* Left Column: Suppliers */}
-            <div className="space-y-3 sm:space-y-4 min-w-0">
-              {suppliers.map((s, idx) => (
-                <div key={s.id} className="relative w-full">
-                  <div
-                    onClick={() => setSelectedNode(s)}
-                    className={`relative z-10 cursor-pointer p-3 sm:p-3.5 rounded-lg border transition-all text-left ${
-                      selectedNode?.id === s.id
-                        ? 'bg-slate-800 border-emerald-400 shadow-md shadow-emerald-950'
-                        : 'bg-slate-900 border-slate-700 hover:border-slate-500'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between gap-1 mb-1.5 min-w-0">
-                      <span className="text-[10px] font-mono px-1.5 py-0.5 bg-emerald-950 text-emerald-300 rounded border border-emerald-800 shrink-0">
-                        SUPPLIER {idx + 1}
-                      </span>
-                      <span className="text-[10px] text-slate-400 truncate">{s.city}</span>
-                    </div>
-                    <h4 className="text-xs font-semibold text-white truncate">{s.name}</h4>
-                    <div className="mt-2 flex items-center justify-between text-[11px] text-slate-300 gap-1">
-                      <span className="truncate">{s.current_price}</span>
-                      <span className="text-emerald-400 font-mono text-[10px] shrink-0 whitespace-nowrap">FLOW IN →</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Center Column: Central Hub (My Company) */}
-            <div className="flex flex-col items-center min-w-0">
-              {centralHub && (
-                <div
-                  onClick={() => setSelectedNode(centralHub)}
-                  className={`relative z-10 cursor-pointer p-3.5 sm:p-4 rounded-xl border-2 transition-all w-full text-center ${
-                    selectedNode?.id === centralHub.id
-                      ? 'bg-slate-900 border-white shadow-xl shadow-slate-900'
-                      : 'bg-slate-900 border-emerald-500 hover:border-white'
-                  }`}
-                >
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-2.5 py-0.5 bg-emerald-500 text-slate-950 text-[10px] font-bold uppercase rounded-full tracking-wider whitespace-nowrap">
-                    My Facility
-                  </div>
-                  <Building2 className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-400 mx-auto mt-1 mb-2" />
-                  <h4 className="text-xs sm:text-sm font-bold text-white leading-tight truncate">{centralHub.name}</h4>
-                  <p className="text-[11px] text-slate-400 mt-1 truncate">{centralHub.city}</p>
-                  <div className="mt-3 pt-2.5 border-t border-slate-800 grid grid-cols-2 gap-1 text-[10px] font-mono text-slate-300">
-                    <div>
-                      <span className="block text-slate-500 text-[9px]">TRUST</span>
-                      <span className="text-white font-bold">{centralHub.trust_score}/100</span>
-                    </div>
-                    <div>
-                      <span className="block text-slate-500 text-[9px]">SORT RATE</span>
-                      <span className="text-emerald-400 font-bold">96.5%</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Right Column: Buyers & Recyclers */}
-            <div className="space-y-3 sm:space-y-4 min-w-0">
-              {buyers.map((b, idx) => (
-                <div key={b.id} className="relative w-full">
-                  <div
-                    onClick={() => setSelectedNode(b)}
-                    className={`relative z-10 cursor-pointer p-3 sm:p-3.5 rounded-lg border transition-all text-left ${
-                      selectedNode?.id === b.id
-                        ? 'bg-slate-800 border-emerald-400 shadow-md shadow-emerald-950'
-                        : 'bg-slate-900 border-slate-700 hover:border-slate-500'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between gap-1 mb-1.5 min-w-0">
-                      <span className="text-[10px] font-mono px-1.5 py-0.5 bg-blue-950 text-blue-300 rounded border border-blue-800 shrink-0">
-                        BUYER {idx + 1}
-                      </span>
-                      <span className="text-[10px] text-slate-400 truncate">{b.city}</span>
-                    </div>
-                    <h4 className="text-xs font-semibold text-white truncate">{b.name}</h4>
-                    <div className="mt-2 flex items-center justify-between text-[11px] text-slate-300 gap-1">
-                      <span className="truncate">{b.current_price}</span>
-                      <span className="text-blue-400 font-mono text-[10px] shrink-0 whitespace-nowrap">FLOW OUT →</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-
-              {recyclers.map((r) => (
-                <div key={r.id} className="relative w-full">
-                  <div
-                    onClick={() => setSelectedNode(r)}
-                    className={`relative z-10 cursor-pointer p-3 sm:p-3.5 rounded-lg border transition-all text-left ${
-                      selectedNode?.id === r.id
-                        ? 'bg-slate-800 border-emerald-400 shadow-md shadow-emerald-950'
-                        : 'bg-slate-900 border-slate-700 hover:border-slate-500'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between gap-1 mb-1.5 min-w-0">
-                      <span className="text-[10px] font-mono px-1.5 py-0.5 bg-amber-950 text-amber-300 rounded border border-amber-800 shrink-0">
-                        RECYCLER
-                      </span>
-                      <span className="text-[10px] text-slate-400 truncate">{r.city}</span>
-                    </div>
-                    <h4 className="text-xs font-semibold text-white truncate">{r.name}</h4>
-                    <div className="mt-2 flex items-center justify-between text-[11px] text-slate-300 gap-1">
-                      <span className="truncate">{r.current_price}</span>
-                      <span className="text-amber-400 font-mono text-[10px] shrink-0 whitespace-nowrap">↻ RECIRCULATE</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-          </div>
-
-          {/* Bottom Footer Ticker */}
-          <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-[11px] text-slate-400 pt-3 border-t border-slate-800">
-            <span className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span>
-              <span>Active Closed Loop: 17,000 kg/month diverted</span>
-            </span>
-            <span className="font-mono text-emerald-400 font-medium">
-              Net Avoided Carbon: 15,800 kg CO2e/mo
-            </span>
-          </div>
+          <h3 className="mt-2 text-lg font-black text-slate-900">Dynamic Company Relationship Network</h3>
         </div>
 
-        {/* Node Inspection Panel (4 cols) */}
-        <div className="lg:col-span-4 bg-slate-50 border border-slate-200 rounded-lg p-4 sm:p-5 flex flex-col justify-between">
+        <button
+          onClick={loadGraphData}
+          className="inline-flex items-center gap-2 self-start rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold text-slate-700 transition hover:bg-slate-100"
+        >
+          <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
+          Refresh workflow
+        </button>
+      </div>
+
+      <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-7">
+        <div className="rounded-lg border border-slate-200 bg-slate-50 p-2.5">
+          <div className="text-[10px] uppercase tracking-[0.12em] text-slate-500">Connected</div>
+          <div className="mt-1 text-lg font-black text-slate-900">{summary.connected_companies ?? 0}</div>
+        </div>
+        <div className="rounded-lg border border-slate-200 bg-slate-50 p-2.5">
+          <div className="text-[10px] uppercase tracking-[0.12em] text-slate-500">Suppliers</div>
+          <div className="mt-1 text-lg font-black text-emerald-700">{summary.active_suppliers ?? 0}</div>
+        </div>
+        <div className="rounded-lg border border-slate-200 bg-slate-50 p-2.5">
+          <div className="text-[10px] uppercase tracking-[0.12em] text-slate-500">Buyers</div>
+          <div className="mt-1 text-lg font-black text-blue-700">{summary.active_buyers ?? 0}</div>
+        </div>
+        <div className="rounded-lg border border-slate-200 bg-slate-50 p-2.5">
+          <div className="text-[10px] uppercase tracking-[0.12em] text-slate-500">Pending</div>
+          <div className="mt-1 text-lg font-black text-amber-700">{summary.pending_requests ?? 0}</div>
+        </div>
+        <div className="rounded-lg border border-slate-200 bg-slate-50 p-2.5">
+          <div className="text-[10px] uppercase tracking-[0.12em] text-slate-500">Active flows</div>
+          <div className="mt-1 text-lg font-black text-emerald-700">{summary.active_material_flows ?? 0}</div>
+        </div>
+        <div className="rounded-lg border border-slate-200 bg-slate-50 p-2.5">
+          <div className="text-[10px] uppercase tracking-[0.12em] text-slate-500">In transit</div>
+          <div className="mt-1 text-lg font-black text-violet-700">{summary.in_transit_orders ?? 0}</div>
+        </div>
+        <div className="rounded-lg border border-slate-200 bg-slate-50 p-2.5">
+          <div className="text-[10px] uppercase tracking-[0.12em] text-slate-500">Completed</div>
+          <div className="mt-1 text-lg font-black text-slate-900">{summary.completed_transactions ?? 0}</div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_260px]">
+        <div className="relative rounded-2xl border border-slate-200 bg-slate-50" style={{ height: `${graphHeight}px` }}>
+          {error ? (
+            <div className="flex h-full items-center justify-center p-6 text-center text-sm text-slate-500">{error}</div>
+          ) : (
+            <>
+              <div className="pointer-events-none absolute left-4 top-3 z-10 rounded-md bg-emerald-100 px-2 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-emerald-800">
+                Sellers
+              </div>
+              <div className="pointer-events-none absolute right-4 top-3 z-10 rounded-md bg-blue-100 px-2 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-blue-800">
+                Buyers
+              </div>
+              <ReactFlow
+                nodes={nodes}
+                edges={edges}
+                nodeTypes={nodeTypes}
+                fitView
+                fitViewOptions={{ padding: 0.3 }}
+                defaultEdgeOptions={{ type: 'smoothstep', animated: true }}
+                nodesDraggable={false}
+                zoomOnScroll
+                panOnScroll
+                proOptions={{ hideAttribution: true }}
+                onNodeClick={(_, node) => setSelectedNode(node)}
+              >
+                <Background color="#cbd5e1" gap={16} />
+                <MiniMap
+                  pannable
+                  zoomable
+                  nodeColor={(node) => {
+                    const statusMap: Record<string, string> = {
+                      active: '#22c55e',
+                      pending: '#f59e0b',
+                      accepted: '#3b82f6',
+                      completed: '#8b5cf6',
+                      rejected: '#ef4444',
+                    };
+                    return statusMap[String((node.data as any)?.status || '').toLowerCase()] || '#64748b';
+                  }}
+                />
+                <Controls />
+              </ReactFlow>
+            </>
+          )}
+        </div>
+
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4 text-emerald-600" />
+              <div className="text-sm font-bold text-slate-900">Selected company</div>
+            </div>
+            <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+          </div>
+
           {selectedNode ? (
-            <div className="space-y-4">
-              <div className="pb-3 border-b border-slate-200">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs font-mono uppercase text-slate-500 tracking-wider">Node Inspector</span>
-                  <span className="b2b-badge bg-emerald-50 text-emerald-700 border-emerald-200 shrink-0">
-                    <ShieldCheck className="w-3 h-3" /> Trust {selectedNode.trust_score}/100
-                  </span>
-                </div>
-                <h4 className="text-base font-bold text-slate-900 mt-1">{selectedNode.name}</h4>
-                <p className="text-xs text-slate-600 font-medium">{selectedNode.role}</p>
-                <p className="text-xs text-slate-500 mt-0.5">Location: {selectedNode.city}, Gujarat Hub</p>
+            <div className="mt-4 space-y-4">
+              <div>
+                <div className="text-[10px] uppercase tracking-[0.15em] text-slate-500">Company</div>
+                <div className="mt-1 text-base font-black text-slate-900">{selectedNode.data?.label || selectedNode.name}</div>
               </div>
 
-              <div className="space-y-3 text-xs">
-                <div>
-                  <span className="text-slate-500 block mb-0.5 font-medium">Active Supply Contract:</span>
-                  <span className="font-mono font-semibold text-slate-900 bg-white px-2 py-1 rounded border border-slate-200 inline-block">
-                    {selectedNode.active_contract}
-                  </span>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="rounded-md border border-slate-200 bg-slate-50 p-2">
+                  <div className="text-[10px] uppercase tracking-[0.12em] text-slate-500">Role</div>
+                  <div className="mt-1 text-xs font-bold text-slate-800">{selectedNode.data?.role || 'Connected partner'}</div>
                 </div>
-
-                <div>
-                  <span className="text-slate-500 block mb-0.5 font-medium">Material Specification:</span>
-                  <div className="bg-white p-2.5 rounded border border-slate-200 text-slate-800 font-medium leading-relaxed">
-                    {selectedNode.material}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                  <div className="bg-white p-2.5 rounded border border-slate-200">
-                    <span className="text-[11px] text-slate-500 block">Current Material Price</span>
-                    <span className="text-sm font-bold text-slate-900">{selectedNode.current_price}</span>
-                  </div>
-                  <div className="bg-white p-2.5 rounded border border-slate-200">
-                    <span className="text-[11px] text-slate-500 block">Inspection SLA</span>
-                    <span className="text-sm font-bold text-emerald-700">48-Hour Pass</span>
-                  </div>
+                <div className="rounded-md border border-slate-200 bg-slate-50 p-2">
+                  <div className="text-[10px] uppercase tracking-[0.12em] text-slate-500">Trust</div>
+                  <div className="mt-1 text-xs font-bold text-emerald-700">{selectedNode.data?.trust_score ?? 90}/100</div>
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-slate-200 space-y-2">
-                <button 
-                  onClick={() => window.location.href = `/contracts`}
-                  className="w-full py-2 bg-slate-900 text-white rounded text-xs font-semibold hover:bg-slate-800 transition flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                  <ExternalLink className="w-3.5 h-3.5" /> View Active Contract Terms
-                </button>
-                <button 
-                  onClick={() => window.location.href = `/marketplace`}
-                  className="w-full py-2 bg-white border border-slate-200 text-slate-700 rounded text-xs font-semibold hover:bg-slate-100 transition cursor-pointer"
-                >
-                  Explore Related Lots in Marketplace
-                </button>
+              <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
+                <div className="text-[10px] uppercase tracking-[0.12em] text-slate-500">Location</div>
+                <div className="mt-1 text-sm font-bold text-slate-800">{selectedNode.data?.city || 'Current region'}</div>
+              </div>
+
+              <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
+                <div className="text-[10px] uppercase tracking-[0.12em] text-slate-500">Flow</div>
+                <div className="mt-1 flex items-center gap-2 text-sm font-bold text-slate-800">
+                  <Sparkles className="h-3.5 w-3.5 text-emerald-600" />
+                  {selectedNode.data?.relationship || 'Business relationship active'}
+                </div>
+              </div>
+
+              <div className="rounded-md border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-800">
+                <div className="font-bold">Business status</div>
+                <div className="mt-1">{String(selectedNode.data?.status || 'active').toUpperCase()}</div>
               </div>
             </div>
           ) : (
-            <div className="text-center py-16 text-slate-400 text-xs">
-              Click any company node on the left to inspect live supply contract and pricing details.
-            </div>
+            <div className="mt-4 text-sm text-slate-500">Select a node to inspect the relationship status.</div>
           )}
         </div>
+      </div>
+
+      <div className="mt-4 flex items-center gap-2 text-[11px] font-medium text-slate-500">
+        <ArrowRight className="h-3.5 w-3.5 text-emerald-600" />
+        Workflow is derived from real company relationships and active order data.
       </div>
     </div>
   );

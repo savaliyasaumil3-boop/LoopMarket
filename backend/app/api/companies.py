@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import text, or_
 from sqlalchemy.orm import Session
 from typing import List, Dict, Any
-from app.models.database import get_db, Company, CompanyProfile, MaterialListing, Order, Contract
+from app.models.database import get_db, Company, CompanyProfile, MaterialListing, Order, Contract, CompanyRelationship
 
 router = APIRouter(prefix="/companies", tags=["Companies"])
 
@@ -61,107 +62,201 @@ def get_company_detail(id: str, db: Session = Depends(get_db)):
 
 @router.get("/{id}/circular-loop")
 def get_circular_supply_workflow(id: str, db: Session = Depends(get_db)):
-    """
-    Returns an interactive n8n-style workflow graph for the circular supply stream
-    (as sketched in handwritten Page 3):
-    Company 1 (Surplus Packaging) -> Buy -> My Company -> Sell -> Company 3 (Buyer)
-    Company 4 (Scrap) -> Recycler 2 -> Buy -> My Company
-    """
+    """Return a live company relationship workflow derived from the current company and real business relationships/orders."""
     target = db.query(Company).filter(Company.id == id).first()
     if not target:
         target = db.query(Company).first()
+    if not target:
+        return {"company_id": id, "company_name": "Unknown", "nodes": [], "edges": [], "summary": {}}
 
-    # Find connected suppliers, buyers, and recyclers from contracts/orders
-    all_companies = db.query(Company).all()
-    suppliers = [c for c in all_companies if c.company_type in ["Packaging Supplier", "Manufacturer"] and c.id != target.id][:2]
-    buyers = [c for c in all_companies if c.company_type in ["Manufacturer", "Retailer"] and c.id != target.id and c not in suppliers][:2]
-    recyclers = [c for c in all_companies if c.company_type == "Recycler" and c.id != target.id][:1]
+    def table_exists(table_name: str) -> bool:
+        dialect = db.bind.dialect.name if db.bind else ""
+        if dialect == "sqlite":
+            row = db.execute(text("SELECT 1 FROM sqlite_master WHERE type='table' AND name = :table_name"), {"table_name": table_name}).fetchone()
+            return bool(row)
+        if dialect == "postgresql":
+            row = db.execute(text("SELECT 1 FROM information_schema.tables WHERE table_name = :table_name"), {"table_name": table_name}).fetchone()
+            return bool(row)
+        return False
 
-    # Build node-graph payload
-    nodes = [
-        {
-            "id": "my-company",
-            "type": "central_hub",
-            "name": target.name,
-            "role": "My Facility (Consolidation & Sorting)",
+    related = []
+    if table_exists("company_relationships"):
+        related = db.query(CompanyRelationship).filter(
+            or_(
+                CompanyRelationship.from_company_id == target.id,
+                CompanyRelationship.to_company_id == target.id
+            )
+        ).all()
+    else:
+        for order in db.query(Order).filter(or_(Order.seller_id == target.id, Order.buyer_id == target.id)).all():
+            if order.seller_id == target.id:
+                related.append({
+                    "from_company_id": target.id,
+                    "to_company_id": order.buyer_id,
+                    "relationship_type": "buyer",
+                    "status": order.status.lower() if order.status else "active",
+                    "quantity": order.quantity,
+                    "unit": order.unit,
+                    "price": order.unit_price,
+                    "material_id": order.material_id,
+                })
+            elif order.buyer_id == target.id:
+                related.append({
+                    "from_company_id": order.seller_id,
+                    "to_company_id": target.id,
+                    "relationship_type": "supplier",
+                    "status": order.status.lower() if order.status else "active",
+                    "quantity": order.quantity,
+                    "unit": order.unit,
+                    "price": order.unit_price,
+                    "material_id": order.material_id,
+                })
+
+    # Contracts are also business relationships. Keep them in the workflow even
+    # when no separate company_relationships row has been created yet.
+    for contract in db.query(Contract).filter(
+        or_(Contract.seller_id == target.id, Contract.buyer_id == target.id)
+    ).all():
+        if contract.seller_id == target.id:
+            related.append({
+                "id": f"contract-{contract.id}",
+                "from_company_id": contract.seller_id,
+                "to_company_id": contract.buyer_id,
+                "relationship_type": "buyer",
+                "partner_role": "buyer",
+                "status": str(contract.status or "active").lower(),
+                "quantity": contract.quantity_kg,
+                "unit": "kg",
+                "price": contract.unit_price,
+                "material_id": None,
+            })
+        else:
+            related.append({
+                "id": f"contract-{contract.id}",
+                "from_company_id": contract.seller_id,
+                "to_company_id": contract.buyer_id,
+                "relationship_type": "supplier",
+                "partner_role": "supplier",
+                "status": str(contract.status or "active").lower(),
+                "quantity": contract.quantity_kg,
+                "unit": "kg",
+                "price": contract.unit_price,
+                "material_id": None,
+            })
+
+    def relationship_value(item: Any, key: str, default: Any = None) -> Any:
+        if isinstance(item, dict):
+            return item.get(key, default)
+        return getattr(item, key, default)
+
+    def partner_role(item: Any) -> str:
+        if isinstance(item, dict) and item.get("partner_role"):
+            return str(item["partner_role"]).lower()
+        relationship_type = str(relationship_value(item, "relationship_type", "")).lower()
+        is_from_company = relationship_value(item, "from_company_id") == target.id
+        if relationship_type == "supplier":
+            return "buyer" if is_from_company else "supplier"
+        if relationship_type == "buyer":
+            return "supplier" if is_from_company else "buyer"
+        return relationship_type or "partner"
+    node_map: Dict[str, Dict[str, Any]] = {}
+    nodes = [{
+        "id": "my-company",
+        "type": "central_hub",
+        "position": {"x": 420, "y": 220},
+        "data": {
+            "label": target.name,
+            "role": "My Facility",
             "city": target.city,
-            "material": "High-Grade Baled Cardboard & Sorted Polymer",
-            "active_contract": "CTR-2026-MAIN",
-            "current_price": "₹16.50/kg",
+            "company_type": target.company_type,
             "trust_score": target.trust_score,
-            "position": {"x": 380, "y": 200},
-            "status": "OPERATIONAL"
+            "status": "active",
+            "relationship": "center"
         }
-    ]
+    }]
+    node_map["my-company"] = nodes[0]
 
-    # Supplier Nodes (Upstream)
-    for idx, s in enumerate(suppliers):
-        nodes.append({
-            "id": f"supplier-{idx+1}",
-            "type": "upstream_supplier",
-            "name": s.name,
-            "role": f"Upstream Supplier ({s.industry})",
-            "city": s.city,
-            "material": "Post-Industrial Clean Corrugated Scrap",
-            "active_contract": f"CTR-2026-IN-{idx+101}",
-            "current_price": f"₹{13.5 + idx*1.2:.2f}/kg",
-            "trust_score": s.trust_score,
-            "position": {"x": 60, "y": 80 + (idx * 220)},
-            "flow_type": "INFLOW_BUY"
+    for item in related:
+        from_company_id = relationship_value(item, "from_company_id")
+        to_company_id = relationship_value(item, "to_company_id")
+        other_id = to_company_id if from_company_id == target.id else from_company_id
+        other_company = db.query(Company).filter(Company.id == other_id).first()
+        if not other_company or other_company.id == target.id:
+            continue
+
+        node_key = f"company-{other_company.id}"
+        if node_key not in node_map:
+            role = partner_role(item)
+            relationship_type = str(relationship_value(item, "relationship_type", "")).lower()
+            if relationship_type == "recycler":
+                role = "recycler"
+            if relationship_type == "logistics":
+                role = "logistics"
+            node_map[node_key] = {
+                "id": node_key,
+                "type": role,
+                "position": {"x": 70 + (len(node_map) * 120) % 700, "y": 80 + ((len(node_map) * 150) % 420)},
+                "data": {
+                    "label": other_company.name,
+                    "role": role.capitalize(),
+                    "city": other_company.city,
+                    "company_type": other_company.company_type,
+                    "trust_score": other_company.trust_score,
+                    "status": relationship_value(item, "status", "active"),
+                    "relationship": "connected"
+                }
+            }
+            nodes.append(node_map[node_key])
+        elif str(relationship_value(item, "id", "")).startswith("contract-"):
+            # Prefer an active contract over an older relationship label for the same partner.
+            role = partner_role(item)
+            node_map[node_key]["type"] = role
+            node_map[node_key]["data"]["role"] = role.capitalize()
+            node_map[node_key]["data"]["status"] = relationship_value(item, "status", "active")
+
+    edges = []
+    for item in related:
+        from_company_id = relationship_value(item, "from_company_id")
+        to_company_id = relationship_value(item, "to_company_id")
+        other_id = to_company_id if from_company_id == target.id else from_company_id
+        other_company = db.query(Company).filter(Company.id == other_id).first()
+        if not other_company:
+            continue
+        source = "my-company" if from_company_id == target.id else f"company-{other_company.id}"
+        target_id = f"company-{other_company.id}" if from_company_id == target.id else "my-company"
+        direction = partner_role(item)
+        color = {"supplier": "#22c55e", "buyer": "#3b82f6", "recycler": "#f59e0b", "logistics": "#a78bfa"}.get(direction, "#64748b")
+        status = str(relationship_value(item, "status", "active")).lower()
+        edges.append({
+            "id": f"rel-{relationship_value(item, 'id', other_company.id)}",
+            "source": source,
+            "target": target_id,
+            "label": f"{direction.upper()} • {relationship_value(item, 'quantity', 0) or 0} {relationship_value(item, 'unit', 'kg') or 'kg'}",
+            "type": "smoothstep",
+            "animated": status in {"active", "in_transit", "pending"},
+            "style": {"stroke": color, "strokeWidth": 2.5, "strokeDasharray": "6 6" if status in {"pending", "rejected", "cancelled"} else "0"},
+            "markerEnd": {"type": "arrowclosed", "color": color}
         })
 
-    # Buyer Nodes (Downstream)
-    for idx, b in enumerate(buyers):
-        nodes.append({
-            "id": f"buyer-{idx+1}",
-            "type": "downstream_buyer",
-            "name": b.name,
-            "role": f"Offtaker / End Buyer ({b.industry})",
-            "city": b.city,
-            "material": "Standardized Baled Boxes & Flakes",
-            "active_contract": f"CTR-2026-OUT-{idx+201}",
-            "current_price": f"₹{17.8 + idx*1.5:.2f}/kg",
-            "trust_score": b.trust_score,
-            "position": {"x": 720, "y": 80 + (idx * 220)},
-            "flow_type": "OUTFLOW_SELL"
-        })
-
-    # Recycler Node (Closed-Loop)
-    if recyclers:
-        r = recyclers[0]
-        nodes.append({
-            "id": "recycler-1",
-            "type": "closed_loop_recycler",
-            "name": r.name,
-            "role": "Closed-Loop Secondary Processor",
-            "city": r.city,
-            "material": "Regenerated Pulp & Polymer Pellets",
-            "active_contract": "CTR-2026-REC-301",
-            "current_price": "₹21.00/kg",
-            "trust_score": r.trust_score,
-            "position": {"x": 380, "y": 420},
-            "flow_type": "CLOSED_LOOP"
-        })
-
-    # Edges
-    edges = [
-        {"source": "supplier-1", "target": "my-company", "label": "BUY (5,000 kg/mo)", "rate": "₹14.50/kg", "status": "ACTIVE_FLOW"},
-        {"source": "supplier-2", "target": "my-company", "label": "BUY (3,200 kg/mo)", "rate": "₹15.20/kg", "status": "ACTIVE_FLOW"},
-        {"source": "my-company", "target": "buyer-1", "label": "SELL (4,500 kg/mo)", "rate": "₹18.00/kg", "status": "ACTIVE_FLOW"},
-        {"source": "my-company", "target": "buyer-2", "label": "SELL (2,800 kg/mo)", "rate": "₹19.20/kg", "status": "ACTIVE_FLOW"},
-    ]
-    if recyclers:
-        edges.append({"source": "my-company", "target": "recycler-1", "label": "REPROCESS (1,500 kg/mo)", "rate": "₹12.00/kg", "status": "CLOSED_LOOP"})
-        edges.append({"source": "recycler-1", "target": "supplier-1", "label": "RECIRCULATE", "rate": "Feedstock", "status": "CIRCULAR_LINK"})
+    summary = {
+        "connected_companies": max(len(nodes) - 1, 0),
+        "active_suppliers": sum(1 for item in related if partner_role(item) in {"supplier", "recycler"}),
+        "active_buyers": sum(1 for item in related if partner_role(item) == "buyer"),
+        "pending_requests": sum(1 for item in related if str(relationship_value(item, "status", "")).lower() in {"pending", "requested"}),
+        "active_material_flows": sum(1 for item in related if str(relationship_value(item, "status", "")).lower() in {"active", "in_transit"}),
+        "in_transit_orders": sum(1 for order in db.query(Order).filter(or_(Order.seller_id == target.id, Order.buyer_id == target.id)).all() if str(order.status).upper() in {"IN_TRANSIT", "PICKED_UP", "LOGISTICS_ASSIGNED"}),
+        "completed_transactions": sum(1 for order in db.query(Order).filter(or_(Order.seller_id == target.id, Order.buyer_id == target.id)).all() if str(order.status).upper() in {"COMPLETED", "ACCEPTED"}),
+    }
 
     return {
         "company_id": target.id,
         "company_name": target.name,
-        "total_circular_flow_kg_month": 17000,
+        "total_circular_flow_kg_month": sum(float(relationship_value(item, "quantity", 0) or 0) for item in related),
         "monthly_net_margin_inr": 48500,
         "avoided_co2_kg_month": 15800,
         "nodes": nodes,
-        "edges": edges
+        "edges": edges,
+        "summary": summary,
     }
 
 @router.get("/{id}/analytics")
