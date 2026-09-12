@@ -9,6 +9,7 @@ import { api } from '../lib/api';
 import { SupplyLoopGraph } from '../components/SupplyLoopGraph';
 import { WhyMatchDrawer } from '../components/WhyMatchDrawer';
 import { MaterialPassportModal } from '../components/MaterialPassportModal';
+import { CircularImpactGraph } from '../components/CircularImpactGraph';
 
 export const DashboardPage: React.FC = () => {
   const { company } = useAuth();
@@ -123,6 +124,12 @@ export const DashboardPage: React.FC = () => {
 
       {/* SIGNATURE: Interactive Circular Supply Loop Workflow (Handwritten Page 3) */}
       <SupplyLoopGraph companyId={company?.id} />
+
+      {/* Circular Impact & Avoided Carbon Graph */}
+      <CircularImpactGraph 
+        title="Facility Circular Carbon Trajectory"
+        subtitle="Real-time Scope 3 GHG avoided virgin material emissions based on your traded packaging lots"
+      />
 
       {/* Netflix-Style AI Recommendations Section */}
       <div className="space-y-6">
