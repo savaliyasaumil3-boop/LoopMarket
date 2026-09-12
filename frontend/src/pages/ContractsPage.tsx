@@ -22,6 +22,9 @@ export const ContractsPage: React.FC = () => {
   const [quantityKg, setQuantityKg] = useState<number>(5000);
   const [unitPrice, setUnitPrice] = useState<number>(14.5);
   const [duration, setDuration] = useState('30 Days Transactional');
+  const [deliveryTerms, setDeliveryTerms] = useState('');
+  const [paymentTerms, setPaymentTerms] = useState('');
+  const [inspectionTerms, setInspectionTerms] = useState('');
 
   useEffect(() => {
     loadContracts();
@@ -52,7 +55,10 @@ export const ContractsPage: React.FC = () => {
         material_name: materialName,
         quantity_kg: quantityKg,
         unit_price: unitPrice,
-        contract_duration: duration
+        contract_duration: duration,
+        ...(deliveryTerms && { delivery_terms: deliveryTerms }),
+        ...(paymentTerms && { payment_terms: paymentTerms }),
+        ...(inspectionTerms && { inspection_terms: inspectionTerms })
       });
       setShowAddModal(false);
       loadContracts();
@@ -95,7 +101,7 @@ export const ContractsPage: React.FC = () => {
           onClick={() => setShowAddModal(true)}
           className="px-4 py-2.5 bg-slate-950 hover:bg-slate-800 text-white rounded-lg font-bold text-xs flex items-center gap-1.5 transition self-start sm:self-auto shadow-sm"
         >
-          <Plus className="w-4 h-4" /> + Add Contract
+          <Plus className="w-4 h-4" /> Add Contract
         </button>
       </div>
 
@@ -277,12 +283,12 @@ export const ContractsPage: React.FC = () => {
             
             <div className="bg-slate-950 text-white p-5 flex items-center justify-between">
               <h3 className="text-base font-bold">Create New Supply Contract</h3>
-              <button onClick={() => setShowAddModal(false)} className="p-1 hover:bg-slate-800 rounded">
+              <button type="button" onClick={() => setShowAddModal(false)} className="p-1 hover:bg-slate-800 rounded">
                 <X className="w-5 h-5 text-slate-400" />
               </button>
             </div>
 
-            <form onSubmit={handleCreateContract} className="p-6 space-y-4">
+            <form onSubmit={handleCreateContract} className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
               <div className="space-y-1">
                 <label className="font-semibold text-slate-700">Contracting Partner Company *</label>
                 <select
@@ -342,6 +348,36 @@ export const ContractsPage: React.FC = () => {
                   <option value="Quarterly Recurring Offtake">Quarterly Recurring Offtake</option>
                   <option value="Annual Closed-Loop Agreement">Annual Closed-Loop Agreement</option>
                 </select>
+              </div>
+
+              <div className="space-y-1">
+                <label className="font-semibold text-slate-700">Delivery & Logistics Terms</label>
+                <textarea
+                  value={deliveryTerms}
+                  onChange={(e) => setDeliveryTerms(e.target.value)}
+                  placeholder="Leave blank for AI defaults..."
+                  className="b2b-input h-14 resize-none"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="font-semibold text-slate-700">Payment Terms</label>
+                <textarea
+                  value={paymentTerms}
+                  onChange={(e) => setPaymentTerms(e.target.value)}
+                  placeholder="Leave blank for AI defaults..."
+                  className="b2b-input h-14 resize-none"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="font-semibold text-slate-700">Quality Inspection Terms</label>
+                <textarea
+                  value={inspectionTerms}
+                  onChange={(e) => setInspectionTerms(e.target.value)}
+                  placeholder="Leave blank for AI defaults..."
+                  className="b2b-input h-14 resize-none"
+                />
               </div>
 
               <div className="pt-4 border-t border-slate-200 flex justify-end gap-2">
