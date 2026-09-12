@@ -1,13 +1,15 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from app.schemas.schemas import SimulatorRequest, SimulatorResponse
 from app.simulator.engine import simulator_engine
 from app.ai.layer2_gemini import gemini_layer2
-
+from sqlalchemy.orm import Session
+from app.models.database import get_db
 router = APIRouter(prefix="/simulator", tags=["Scenario Simulator"])
 
 @router.post("/run")
-async def run_scenario_simulation(req: SimulatorRequest):
+async def run_scenario_simulation(req: SimulatorRequest, db: Session = Depends(get_db)):
     result = simulator_engine.simulate(
+        db,
         material_category=req.material_category,
         base_quantity_kg=req.base_quantity_kg,
         material_unit_price=req.material_unit_price,
@@ -22,5 +24,5 @@ async def run_scenario_simulation(req: SimulatorRequest):
         multiplier=req.transport_rate_multiplier
     )
     
-    result["ai_key_takeaway"] = ai_insight
+    result["key_takeaway"] = ai_insight
     return result

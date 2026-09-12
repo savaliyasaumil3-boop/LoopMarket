@@ -117,6 +117,9 @@ async def conversational_assistant(req: AssistantChatRequest, db: Session = Depe
             "packaging surplus, and sustainability. Provide helpful, concise answers to the user."
         )
         gemini_reply = await gemini_layer2.generate_copilot_response(req.message, system_prompt=system_prompt)
+        # Ensure a non‑empty reply – provide a friendly fallback if Gemini returned nothing
+        if not gemini_reply:
+            gemini_reply = "Sorry, the AI service is currently unavailable. Please try again later."
         
         reply = gemini_reply
         suggested_actions = [
@@ -125,10 +128,12 @@ async def conversational_assistant(req: AssistantChatRequest, db: Session = Depe
             {"label": "What-If Simulator", "action": "NAVIGATE", "route": "/simulator"}
         ]
 
+    # Ensure a non‑empty reply before returning
+    if not reply:
+        reply = "Sorry, I couldn't process your request. Please try again later."
     return AssistantChatResponse(
         reply=reply,
         intent=intent,
         suggested_actions=suggested_actions,
         data=data_payload
     )
-

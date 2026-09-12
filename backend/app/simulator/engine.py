@@ -1,57 +1,14 @@
 from typing import Dict, Any, List
 from app.models.database import Company
 from app.matching.engine import calculate_haversine_distance
+from app.utils.price_fetcher import get_market_price
 
-MOCK_BUYER_CANDIDATES = [
-    {
-        "id": "comp-buyer-1",
-        "name": "GreenPack Kraft Mills Ltd",
-        "city": "Vadodara",
-        "lat": 22.3072,
-        "lng": 73.1812,
-        "target_price": 18.5,
-        "demand_capacity_kg": 20000,
-        "trust_score": 96.0,
-        "acceptable_contamination": ["None", "Low"]
-    },
-    {
-        "id": "comp-buyer-2",
-        "name": "Navrangpura Corrugators & Packaging",
-        "city": "Ahmedabad",
-        "lat": 23.0338,
-        "lng": 72.5568,
-        "target_price": 16.0,
-        "demand_capacity_kg": 6000,
-        "trust_score": 92.0,
-        "acceptable_contamination": ["None", "Low", "Moderate"]
-    },
-    {
-        "id": "comp-buyer-3",
-        "name": "Surat Circular Polymer & Paper Hub",
-        "city": "Surat",
-        "lat": 21.1702,
-        "lng": 72.8311,
-        "target_price": 21.0,
-        "demand_capacity_kg": 35000,
-        "trust_score": 94.0,
-        "acceptable_contamination": ["None", "Low"]
-    },
-    {
-        "id": "comp-buyer-4",
-        "name": "Saurashtra Pulp & Reclaiming Co",
-        "city": "Rajkot",
-        "lat": 22.3039,
-        "lng": 70.8022,
-        "target_price": 17.5,
-        "demand_capacity_kg": 15000,
-        "trust_score": 88.0,
-        "acceptable_contamination": ["None", "Low", "Moderate", "High"]
-    }
-]
+# MOCK_BUYER_CANDIDATES removed in favor of real database query
 
 class ScenarioSimulator:
     def simulate(
         self,
+        db: Any,
         material_category: str,
         base_quantity_kg: float,
         material_unit_price: float,
@@ -61,14 +18,36 @@ class ScenarioSimulator:
     ) -> Dict[str, Any]:
         origin_coords = (23.0225, 72.5714) # Default Ahmedabad
 
+        # Fetch real buyers from DB
+        buyers = db.query(Company).filter(
+            Company.company_type.in_(["Manufacturer", "Recycler", "Packaging Supplier"])
+        ).all()
+        
+        candidates = []
+        for b in buyers:
+            candidates.append({
+                "id": b.id,
+                "name": b.name,
+                "city": b.city,
+                "lat": b.latitude,
+                "lng": b.longitude,
+                "target_price": get_market_price(material_category),  # Real‑time market price
+                "demand_capacity_kg": 25000,
+                "trust_score": b.trust_score,
+                "acceptable_contamination": ["None", "Low", "Moderate"] if b.company_type == "Recycler" else ["None", "Low"]
+            })
+            
+        if not candidates:
+            return {"error": "No buyers found"}
+
         # Baseline calculation (transport_rate_multiplier = 1.0)
         baseline_results = self._evaluate_candidates(
-            base_quantity_kg, material_unit_price, 1.0, contamination_level, origin_coords
+            candidates, base_quantity_kg, material_unit_price, 1.0, contamination_level, origin_coords
         )
         
         # Scenario calculation with user multiplier
         scenario_results = self._evaluate_candidates(
-            base_quantity_kg, material_unit_price, transport_rate_multiplier, contamination_level, origin_coords
+            candidates, base_quantity_kg, material_unit_price, transport_rate_multiplier, contamination_level, origin_coords
         )
 
         original_best = baseline_results[0]
@@ -97,6 +76,7 @@ class ScenarioSimulator:
 
     def _evaluate_candidates(
         self,
+        candidates: List[Dict[str, Any]],
         qty_kg: float,
         unit_price: float,
         trans_mult: float,
@@ -106,14 +86,18 @@ class ScenarioSimulator:
         tonnage = qty_kg / 1000.0
         results = []
 
-        for b in MOCK_BUYER_CANDIDATES:
+        for b in candidates:
             dist = calculate_haversine_distance(origin_coords[0], origin_coords[1], b["lat"], b["lng"])
-            
-            # Transport cost calculation
-            base_rate_per_ton_km = 4.8 * trans_mult
-            transport_cost = dist * tonnage * base_rate_per_ton_km
-            delivered_cost_per_kg = round(unit_price + (transport_cost / qty_kg), 2)
-            
+
+            # Realistic Indian road freight: ~15 INR/ton-km (includes fuel, driver, toll, overheads)
+            # Minimum shipment cost: ₹1500 (loading, unloading, paperwork) regardless of distance
+            BASE_RATE_PER_TON_KM = 15.0
+            MIN_SHIPMENT_COST_INR = 1500.0
+
+            variable_cost = dist * tonnage * BASE_RATE_PER_TON_KM * trans_mult
+            transport_cost = max(MIN_SHIPMENT_COST_INR * trans_mult, variable_cost)
+            delivered_cost_per_kg = round(unit_price + (transport_cost / qty_kg), 3)
+
             # Contamination penalty
             contam_penalty = 0.0
             if contamination not in b["acceptable_contamination"]:
@@ -123,23 +107,28 @@ class ScenarioSimulator:
             elif contamination == "High":
                 contam_penalty = 18.0
 
-            # Distance score
+            # Distance score (closer = better)
             dist_score = max(30.0, 100.0 - (dist * 0.25))
-            
-            # Delivered cost score compared to buyer target
+
+            # Delivered cost score vs buyer's target price
             price_diff = b["target_price"] - delivered_cost_per_kg
-            cost_score = max(40.0, min(99.0, 75.0 + (price_diff * 4.0)))
+            cost_score = max(0.0, min(99.0, 75.0 + (price_diff * 6.0)))
 
             # Circularity score
             circ_score = max(30.0, 94.0 - contam_penalty)
 
-            # Match Score
+            # Transport surge penalty: distant buyers are penalised more during a surge.
+            # At +30% surge (mult=1.3) a buyer 200km away loses ~12 match points.
+            surge_ratio = max(0.0, trans_mult - 1.0)
+            transport_surge_penalty = surge_ratio * 40.0 * (dist / 200.0)
+
             match_score = round(
                 (0.30 * 95.0) +
                 (0.20 * 90.0) +
                 (0.20 * dist_score) +
                 (0.15 * cost_score) +
-                (0.15 * circ_score),
+                (0.15 * circ_score) -
+                transport_surge_penalty,
                 1
             )
 
@@ -147,7 +136,7 @@ class ScenarioSimulator:
                 "id": b["id"],
                 "name": b["name"],
                 "city": b["city"],
-                "distance_km": dist,
+                "distance_km": round(dist, 1),
                 "delivered_cost_per_kg": delivered_cost_per_kg,
                 "transport_cost_total": round(transport_cost, 2),
                 "transport_emissions_kg": round(tonnage * dist * 0.125, 1),

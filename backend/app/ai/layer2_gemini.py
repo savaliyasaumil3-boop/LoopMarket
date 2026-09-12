@@ -1,5 +1,6 @@
 import json
 import httpx
+import asyncio
 from typing import List, Dict, Any
 from app.core.config import settings
 from app.schemas.schemas import RecommendationItem, GeminiRecommendationResponse
@@ -7,6 +8,17 @@ from app.schemas.schemas import RecommendationItem, GeminiRecommendationResponse
 class GeminiLayer2Service:
     def __init__(self):
         self.api_key = settings.GEMINI_API_KEY
+
+    async def _make_api_request(self, url: str, payload: Dict[str, Any], max_retries=4) -> httpx.Response:
+        for attempt in range(max_retries):
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                resp = await client.post(url, headers={"Content-Type": "application/json"}, json=payload)
+                if resp.status_code == 429 and attempt < max_retries - 1:
+                    await asyncio.sleep(2 ** attempt)
+                    continue
+                return resp
+        return resp
+
 
     async def generate_personalized_recommendations(
         self,
@@ -43,15 +55,17 @@ class GeminiLayer2Service:
         payload = {
             "contents": [{"parts": [{"text": prompt}]}]
         }
-        headers = {"Content-Type": "application/json"}
         
         try:
-            async with httpx.AsyncClient(timeout=10.0) as client:
-                resp = await client.post(url, headers=headers, json=payload)
-                if resp.status_code == 200:
-                    data = resp.json()
-                    return data["candidates"][0]["content"]["parts"][0]["text"]
-                return f"Gemini API returned error: {resp.status_code}"
+            resp = await self._make_api_request(url, payload)
+            if resp.status_code == 200:
+                data = resp.json()
+                return data["candidates"][0]["content"]["parts"][0]["text"]
+            if resp.status_code == 429:
+                # Rate limit exceeded – fall back to a deterministic placeholder response
+                print("[Gemini Layer 2] Gemini API rate limit exceeded (429). Using fallback response.")
+                return "Sorry, the AI service is currently busy. Please try again later."
+            return f"Gemini API returned error: {resp.status_code}"
         except Exception as e:
             print(f"[Gemini Layer 2] Copilot chat error: {e}")
             return "I am currently unable to reach the Gemini service."
@@ -150,14 +164,13 @@ Return ONLY valid JSON matching this schema:
   ]
 }}"""
         
-        headers = {"Content-Type": "application/json"}
         payload = {
             "contents": [{"parts": [{"text": prompt}]}],
             "generationConfig": {"response_mime_type": "application/json"}
         }
 
-        async with httpx.AsyncClient(timeout=12.0) as client:
-            resp = await client.post(url, headers=headers, json=payload)
+        try:
+            resp = await self._make_api_request(url, payload)
             if resp.status_code == 200:
                 data = resp.json()
                 raw_text = data["candidates"][0]["content"]["parts"][0]["text"]
@@ -192,6 +205,9 @@ Return ONLY valid JSON matching this schema:
                         )
                 return items
             return []
+        except Exception as e:
+            print(f"[Gemini Layer 2] API error in recommendations: {e}")
+            return []
 
     async def generate_simulator_insight(self, original_best: Dict[str, Any], new_best: Dict[str, Any], multiplier: float) -> str:
         if not self.api_key or len(self.api_key) < 5:
@@ -205,13 +221,11 @@ New Best Partner (with transport multiplier {multiplier}): {json.dumps(new_best)
 Write a concise 1-2 sentence business insight explaining why the new partner is better under the new transport rates."""
         
         payload = {"contents": [{"parts": [{"text": prompt}]}]}
-        headers = {"Content-Type": "application/json"}
         try:
-            async with httpx.AsyncClient(timeout=10.0) as client:
-                resp = await client.post(url, headers=headers, json=payload)
-                if resp.status_code == 200:
-                    data = resp.json()
-                    return data["candidates"][0]["content"]["parts"][0]["text"]
+            resp = await self._make_api_request(url, payload)
+            if resp.status_code == 200:
+                data = resp.json()
+                return data["candidates"][0]["content"]["parts"][0]["text"]
         except Exception as e:
             print(f"[Gemini Layer 2] Simulator insight error: {e}")
         return f"With a transport multiplier of {multiplier}, the new best match is {new_best.get('name', 'Unknown')}."
@@ -227,13 +241,11 @@ Data: {json.dumps(consolidation_data)}
 Write a concise 1-2 sentence insight about the cost and emissions savings from consolidating these shipments instead of running separate trucks."""
         
         payload = {"contents": [{"parts": [{"text": prompt}]}]}
-        headers = {"Content-Type": "application/json"}
         try:
-            async with httpx.AsyncClient(timeout=10.0) as client:
-                resp = await client.post(url, headers=headers, json=payload)
-                if resp.status_code == 200:
-                    data = resp.json()
-                    return data["candidates"][0]["content"]["parts"][0]["text"]
+            resp = await self._make_api_request(url, payload)
+            if resp.status_code == 200:
+                data = resp.json()
+                return data["candidates"][0]["content"]["parts"][0]["text"]
         except Exception as e:
             print(f"[Gemini Layer 2] Logistics insight error: {e}")
         return "Consolidated milk-runs reduce distance and overall freight costs."
@@ -251,13 +263,11 @@ Match Scores (0-100): {json.dumps(score_breakdown)}
 Write a concise, persuasive 2-sentence paragraph explaining why this buyer is a strong match for this material, focusing on the highest scoring categories."""
         
         payload = {"contents": [{"parts": [{"text": prompt}]}]}
-        headers = {"Content-Type": "application/json"}
         try:
-            async with httpx.AsyncClient(timeout=10.0) as client:
-                resp = await client.post(url, headers=headers, json=payload)
-                if resp.status_code == 200:
-                    data = resp.json()
-                    return data["candidates"][0]["content"]["parts"][0]["text"]
+            resp = await self._make_api_request(url, payload)
+            if resp.status_code == 200:
+                data = resp.json()
+                return data["candidates"][0]["content"]["parts"][0]["text"]
         except Exception as e:
             print(f"[Gemini Layer 2] Match explanation error: {e}")
         return f"Good match based on deterministic factors."

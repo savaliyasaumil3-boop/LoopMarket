@@ -16,9 +16,9 @@ export const SimulatorPage: React.FC = () => {
   const [result, setResult] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    runSimulation();
-  }, [category, quantityKg, unitPrice, transMultiplier, contamination, originCity]);
+  // The simulation now runs only when the user clicks the Submit button.
+  // Previously, it auto‑ran on every parameter change via useEffect.
+
 
   const runSimulation = async () => {
     setLoading(true);
@@ -31,9 +31,11 @@ export const SimulatorPage: React.FC = () => {
         contamination_level: contamination,
         origin_city: originCity
       });
+      console.log('Simulation response:', res);
       setResult(res);
-    } catch {
-      // ignore
+    } catch (err) {
+      console.error('Simulation error:', err);
+      alert('Failed to run simulation. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -61,7 +63,7 @@ export const SimulatorPage: React.FC = () => {
           onClick={runSimulation}
           className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg font-semibold text-xs flex items-center gap-1.5 transition self-start sm:self-auto"
         >
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} /> Recalculate
+          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} /> Submit
         </button>
       </div>
 
@@ -201,7 +203,7 @@ export const SimulatorPage: React.FC = () => {
           {/* Side-by-side Buyer Shift Comparison */}
           {result && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              
+
               {/* Baseline Best Buyer */}
               <div className="p-5 bg-white border border-slate-200 rounded-xl shadow-sm space-y-3">
                 <span className="text-[10px] font-mono text-slate-400 uppercase block font-bold">Baseline Top Partner (1.0x Freight)</span>
@@ -209,7 +211,6 @@ export const SimulatorPage: React.FC = () => {
                 <p className="text-slate-500 text-xs">
                   {result.original_best_buyer?.city} • {result.original_best_buyer?.distance_km} km away
                 </p>
-
                 <div className="p-3 bg-slate-50 rounded border border-slate-100 text-xs space-y-1 font-mono">
                   <div className="flex justify-between">
                     <span className="text-slate-600">Match Score:</span>
@@ -229,14 +230,13 @@ export const SimulatorPage: React.FC = () => {
                 <p className="text-emerald-200 text-xs">
                   {result.new_best_buyer?.city} • {result.new_best_buyer?.distance_km} km away
                 </p>
-
                 <div className="p-3 bg-slate-900 rounded border border-emerald-800 text-xs space-y-1 font-mono">
                   <div className="flex justify-between">
-                    <span className="text-slate-300">New Match Score:</span>
+                    <span className="text-slate-300">Match Score:</span>
                     <span className="font-bold text-emerald-400">{result.new_best_buyer?.match_score}%</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-300">New Delivered Cost:</span>
+                    <span className="text-slate-300">Delivered Cost:</span>
                     <span className="font-bold text-white">₹{result.new_best_buyer?.delivered_cost_per_kg}/kg</span>
                   </div>
                 </div>
@@ -250,25 +250,29 @@ export const SimulatorPage: React.FC = () => {
             <h4 className="font-bold text-slate-900 text-sm">All Evaluated Regional Buyers under Current Scenario</h4>
             
             <div className="divide-y divide-slate-100 text-xs">
-              {result?.candidate_comparison?.map((cand: any, idx: number) => (
-                <div key={cand.id} className="py-3 flex items-center justify-between gap-3">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-slate-400 font-bold">#{idx + 1}</span>
-                      <span className="font-bold text-slate-900">{cand.name}</span>
-                      <span className="text-slate-400">({cand.city} • {cand.distance_km} km)</span>
+              {result?.candidate_comparison?.length ? (
+                result.candidate_comparison.map((cand: any, idx: number) => (
+                  <div key={cand.id} className="py-3 flex items-center justify-between gap-3">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-slate-400 font-bold">#{idx + 1}</span>
+                        <span className="font-bold text-slate-900">{cand.name}</span>
+                        <span className="text-slate-400">({cand.city} • {cand.distance_km} km)</span>
+                      </div>
+                      <span className="text-[11px] text-slate-500 mt-0.5 block font-mono">
+                        Freight: ₹{cand.transport_cost_total?.toLocaleString()} • Transport CO2: {cand.transport_emissions_kg} kg
+                      </span>
                     </div>
-                    <span className="text-[11px] text-slate-500 mt-0.5 block font-mono">
-                      Freight: ₹{cand.transport_cost_total?.toLocaleString()} • Transport CO2: {cand.transport_emissions_kg} kg
-                    </span>
-                  </div>
 
-                  <div className="text-right font-mono">
-                    <span className="font-bold text-slate-900 block">₹{cand.delivered_cost_per_kg}/kg</span>
-                    <span className="text-emerald-700 font-semibold text-[11px]">{cand.match_score}% Match</span>
+                    <div className="text-right font-mono">
+                      <span className="font-bold text-slate-900 block">₹{cand.delivered_cost_per_kg}/kg</span>
+                      <span className="text-emerald-700 font-semibold text-[11px]">{cand.match_score}% Match</span>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className="text-center text-slate-500">No candidate data available.</p>
+              )}
             </div>
           </div>
 
