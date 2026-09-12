@@ -52,6 +52,9 @@ class Company(Base):
     requirements = relationship("MaterialRequirement", back_populates="buyer")
     orders_as_buyer = relationship("Order", foreign_keys="[Order.buyer_id]", back_populates="buyer")
     orders_as_seller = relationship("Order", foreign_keys="[Order.seller_id]", back_populates="seller")
+    relationships_out = relationship("CompanyRelationship", foreign_keys="[CompanyRelationship.from_company_id]", back_populates="from_company")
+    relationships_in = relationship("CompanyRelationship", foreign_keys="[CompanyRelationship.to_company_id]", back_populates="to_company")
+    initiative_relations = relationship("CompanyRelationship", foreign_keys="[CompanyRelationship.initiated_by]", back_populates="initiator")
 
 class CompanyProfile(Base):
     __tablename__ = "company_profiles"
@@ -70,6 +73,26 @@ class CompanyProfile(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     company = relationship("Company", back_populates="profile")
+
+class CompanyRelationship(Base):
+    __tablename__ = "company_relationships"
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    from_company_id = Column(String(36), ForeignKey("companies.id"), nullable=False)
+    to_company_id = Column(String(36), ForeignKey("companies.id"), nullable=False)
+    initiated_by = Column(String(36), ForeignKey("companies.id"), nullable=True)
+    relationship_type = Column(String(50), nullable=False)  # supplier, buyer, recycler, logistics
+    material_id = Column(String(36), ForeignKey("materials.id"), nullable=True)
+    status = Column(String(50), default="pending")  # pending, accepted, rejected, active, paused, completed, cancelled
+    quantity = Column(Float, nullable=True)
+    unit = Column(String(50), nullable=True)
+    price = Column(Float, nullable=True)
+    message = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    from_company = relationship("Company", foreign_keys=[from_company_id], back_populates="relationships_out")
+    to_company = relationship("Company", foreign_keys=[to_company_id], back_populates="relationships_in")
+    initiator = relationship("Company", foreign_keys=[initiated_by], back_populates="initiative_relations")
 
 class MaterialListing(Base):
     __tablename__ = "materials"
