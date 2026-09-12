@@ -104,7 +104,19 @@ export const ImpactPage: React.FC = () => {
               <AreaChart data={data?.monthly_trend || []}>
                 <XAxis dataKey="month" stroke="#94a3b8" fontSize={11} />
                 <YAxis stroke="#94a3b8" fontSize={11} />
-                <Tooltip formatter={(v: any) => `${v} Tons CO2e`} />
+                <Tooltip 
+                  formatter={(v: any) => [`${v} Tons CO₂e`, 'Net Avoided Carbon']}
+                  contentStyle={{ 
+                    backgroundColor: '#0F172A', 
+                    borderColor: '#334155', 
+                    borderRadius: '0.5rem', 
+                    color: '#F8FAFC', 
+                    fontSize: '11px',
+                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.3)'
+                  }}
+                  itemStyle={{ color: '#34D399', fontWeight: 600 }}
+                  labelStyle={{ color: '#F8FAFC', fontWeight: 700 }}
+                />
                 <Area type="monotone" dataKey="net_co2_saved_tons" stroke="#059669" fill="#059669" fillOpacity={0.18} />
               </AreaChart>
             </ResponsiveContainer>

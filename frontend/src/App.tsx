@@ -81,15 +81,51 @@ const ProtectedAppLayout: React.FC = () => {
   return <AppLayout />;
 };
 
+const HomeRoute: React.FC = () => {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center text-white">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-400"></div>
+      </div>
+    );
+  }
+
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return <LandingPage />;
+};
+
+const PublicOnlyRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center text-white">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-400"></div>
+      </div>
+    );
+  }
+
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return <>{children}</>;
+};
+
 export const App: React.FC = () => {
   return (
     <AuthProvider>
       <BrowserRouter>
         <Routes>
           {/* Public Routes */}
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/signup" element={<SignupPage />} />
+          <Route path="/" element={<HomeRoute />} />
+          <Route path="/login" element={<PublicOnlyRoute><LoginPage /></PublicOnlyRoute>} />
+          <Route path="/signup" element={<PublicOnlyRoute><SignupPage /></PublicOnlyRoute>} />
 
           {/* Authenticated Dashboard Shell */}
           <Route element={<ProtectedAppLayout />}>
@@ -109,7 +145,6 @@ export const App: React.FC = () => {
             <Route path="/impact" element={<ImpactPage />} />
             <Route path="/simulator" element={<SimulatorPage />} />
             <Route path="/assistant" element={<AssistantPage />} />
-            <Route path="/admin" element={<AdminDemoPage />} />
             <Route path="/profile" element={<CompanyHistoryPage />} />
             <Route path="/settings" element={<CompanyHistoryPage />} />
           </Route>

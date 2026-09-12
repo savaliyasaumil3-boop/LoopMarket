@@ -166,14 +166,7 @@ export const Navbar: React.FC<{
                     <Building2 className="w-3.5 h-3.5 text-slate-400" />
                     <span>Company Status & Profile</span>
                   </Link>
-                  <Link
-                    to="/admin"
-                    onClick={() => setShowProfileMenu(false)}
-                    className="flex items-center gap-2 px-2.5 py-1.5 rounded-md text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition font-medium"
-                  >
-                    <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>Judge Demo Console</span>
-                  </Link>
+
                 </div>
 
                 <div className="border-t border-slate-100 pt-2">

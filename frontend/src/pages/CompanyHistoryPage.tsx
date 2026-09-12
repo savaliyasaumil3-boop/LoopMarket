@@ -169,9 +169,17 @@ export const CompanyHistoryPage: React.FC = () => {
                 <XAxis dataKey="month" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={{ stroke: '#e2e8f0' }} />
                 <YAxis stroke="#94a3b8" fontSize={11} tickFormatter={(v) => `₹${v/1000}k`} tickLine={false} axisLine={false} />
                 <Tooltip 
-                  formatter={(v: any) => [`₹${Number(v).toLocaleString()}`, '']}
-                  contentStyle={{ backgroundColor: '#020617', borderColor: '#1e293b', borderRadius: '0.5rem', color: '#fff', fontSize: '11px' }}
-                  itemStyle={{ color: '#fff' }}
+                  formatter={(v: any, name: any) => [`₹${Number(v).toLocaleString()}`, name]}
+                  contentStyle={{ 
+                    backgroundColor: '#0F172A', 
+                    borderColor: '#334155', 
+                    borderRadius: '0.5rem', 
+                    color: '#F8FAFC', 
+                    fontSize: '11px',
+                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.3)'
+                  }}
+                  itemStyle={{ color: '#34D399', fontWeight: 600 }}
+                  labelStyle={{ color: '#F8FAFC', fontWeight: 700 }}
                 />
                 <Area 
                   type="monotone" 
@@ -231,8 +239,17 @@ export const CompanyHistoryPage: React.FC = () => {
                   ))}
                 </Pie>
                 <Tooltip 
-                  formatter={(v: any) => [`${v}% of volume`, '']}
-                  contentStyle={{ backgroundColor: '#020617', borderColor: '#1e293b', borderRadius: '0.5rem', color: '#fff', fontSize: '11px' }}
+                  formatter={(v: any, name: any) => [`${v}% of total volume`, name]}
+                  contentStyle={{ 
+                    backgroundColor: '#0F172A', 
+                    borderColor: '#334155', 
+                    borderRadius: '0.5rem', 
+                    color: '#F8FAFC', 
+                    fontSize: '11px',
+                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.3)'
+                  }}
+                  itemStyle={{ color: '#34D399', fontWeight: 600 }}
+                  labelStyle={{ color: '#F8FAFC', fontWeight: 700 }}
                 />
               </PieChart>
             </ResponsiveContainer>
@@ -240,10 +257,10 @@ export const CompanyHistoryPage: React.FC = () => {
 
           <div className="grid grid-cols-2 gap-2 text-[11px] pt-2 border-t border-slate-100">
             {analytics?.category_breakdown?.map((c: any, i: number) => (
-              <div key={c.category} className="flex items-center gap-1.5">
+              <div key={c.category} className="flex items-center gap-1.5 p-1.5 rounded-lg hover:bg-slate-100/80 transition-colors">
                 <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: COLORS[i % COLORS.length] }}></span>
-                <span className="text-slate-600 truncate">{c.category}:</span>
-                <span className="font-bold text-slate-900 font-mono">{c.percentage}%</span>
+                <span className="text-slate-600 font-medium truncate">{c.category}:</span>
+                <span className="font-bold text-slate-900 font-mono ml-auto">{c.percentage}%</span>
               </div>
             ))}
           </div>
@@ -275,7 +292,16 @@ export const CompanyHistoryPage: React.FC = () => {
               <YAxis stroke="#94a3b8" fontSize={11} tickFormatter={(v) => `${v/1000}t`} tickLine={false} axisLine={false} />
               <Tooltip 
                 formatter={(v: any) => [`${Number(v).toLocaleString()} kg CO₂e`, 'Avoided Carbon']}
-                contentStyle={{ backgroundColor: '#020617', borderColor: '#1e293b', borderRadius: '0.5rem', color: '#fff', fontSize: '11px' }}
+                contentStyle={{ 
+                  backgroundColor: '#0F172A', 
+                  borderColor: '#334155', 
+                  borderRadius: '0.5rem', 
+                  color: '#F8FAFC', 
+                  fontSize: '11px',
+                  boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.3)'
+                }}
+                itemStyle={{ color: '#34D399', fontWeight: 600 }}
+                labelStyle={{ color: '#F8FAFC', fontWeight: 700 }}
               />
               <Bar 
                 dataKey="co2_avoided" 

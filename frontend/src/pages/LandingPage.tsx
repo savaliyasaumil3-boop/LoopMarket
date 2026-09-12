@@ -114,13 +114,7 @@ export const LandingPage: React.FC = () => {
           >
             List Your Material (AI Quick-Fill)
           </Link>
-          <Link
-            to="/admin"
-            className="px-6 py-3 rounded-lg bg-emerald-50 border border-emerald-300 text-emerald-800 font-semibold text-xs sm:text-sm hover:bg-emerald-100 transition flex items-center gap-1.5"
-          >
-            <Sparkles className="w-4 h-4 text-emerald-600" />
-            Judge 1-Click Demo
-          </Link>
+
         </div>
 
         {/* Live Metrics Ticker */}
@@ -238,7 +232,7 @@ export const LandingPage: React.FC = () => {
           <Link to="/contracts" className="hover:text-slate-900">Contracts</Link>
           <Link to="/logistics" className="hover:text-slate-900">Logistics</Link>
           <Link to="/impact" className="hover:text-slate-900">Impact</Link>
-          <Link to="/admin" className="text-emerald-700 font-bold hover:underline">Demo Console</Link>
+
         </div>
       </footer>
 
