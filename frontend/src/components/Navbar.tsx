@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { 
   Search, Bell, ShieldCheck, MapPin, User, LogOut, 
-  ChevronDown, Building2, ExternalLink, Sparkles, Menu 
+  ChevronDown, Building2, ExternalLink, Sparkles, Menu, Package 
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -159,6 +159,15 @@ export const Navbar: React.FC<{
 
                 <div className="space-y-1">
                   <Link
+                    to="/my-listings"
+                    onClick={() => setShowProfileMenu(false)}
+                    className="flex items-center gap-2 px-2.5 py-1.5 rounded-md text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition font-medium"
+                  >
+                    <Package className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Your Listings & Supabase</span>
+                  </Link>
+
+                  <Link
                     to="/company/history"
                     onClick={() => setShowProfileMenu(false)}
                     className="flex items-center gap-2 px-2.5 py-1.5 rounded-md text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition font-medium"
@@ -166,7 +175,6 @@ export const Navbar: React.FC<{
                     <Building2 className="w-3.5 h-3.5 text-slate-400" />
                     <span>Company Status & Profile</span>
                   </Link>
-
                 </div>
 
                 <div className="border-t border-slate-100 pt-2">

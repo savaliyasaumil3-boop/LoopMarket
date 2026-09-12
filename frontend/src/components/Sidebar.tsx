@@ -6,6 +6,7 @@ import {
   History,
   Building2,
   PlusCircle,
+  Package,
   FileText,
   Truck,
   TrendingUp,
@@ -35,6 +36,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => 
   const navItems = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { name: 'Marketplace', path: '/marketplace', icon: Store },
+    { name: 'Your Listings', path: '/my-listings', icon: Package },
     { name: 'Order History', path: '/orders', icon: History },
     { name: 'Company Status', path: '/company/history', icon: Building2 },
     { name: 'Sell Product', path: '/sell', icon: PlusCircle },

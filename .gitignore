@@ -1,1 +1,6 @@
+# Local SQLite Databases
+*.db
+*.sqlite
+*.sqlite3
 backend/reloop.db
+backend/*.db

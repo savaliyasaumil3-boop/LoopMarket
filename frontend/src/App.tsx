@@ -23,6 +23,7 @@ import { ImpactPage } from './pages/ImpactPage';
 import { SimulatorPage } from './pages/SimulatorPage';
 import { AssistantPage } from './pages/AssistantPage';
 import { AdminDemoPage } from './pages/AdminDemoPage';
+import { YourListingsPage } from './pages/YourListingsPage';
 
 const AppLayout: React.FC = () => {
   const [showNotifications, setShowNotifications] = useState(false);
@@ -133,7 +134,8 @@ export const App: React.FC = () => {
             <Route path="/marketplace" element={<MarketplacePage />} />
             <Route path="/materials/:id" element={<MaterialDetailPage />} />
             <Route path="/sell" element={<SellMaterialPage />} />
-            <Route path="/my-materials" element={<MarketplacePage />} />
+            <Route path="/my-listings" element={<YourListingsPage />} />
+            <Route path="/my-materials" element={<YourListingsPage />} />
             <Route path="/requirements" element={<RequirementsPage />} />
             <Route path="/orders" element={<OrdersPage />} />
             <Route path="/orders/:id" element={<OrderDetailPage />} />
