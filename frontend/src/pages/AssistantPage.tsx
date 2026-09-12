@@ -18,7 +18,7 @@ export const AssistantPage: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       sender: 'assistant',
-      text: "Hello, I am RELOOP's AI Circular Assistant. I use MiniMax NLP parsing and Gemini grounded recommendations to help you procure surplus materials, rank verified buyers, and calculate freight logistics.\n\nHow can I support your secondary material exchange today?",
+      text: "Hello, I am LoopMarket's AI Circular Assistant. I use MiniMax NLP parsing and Gemini grounded recommendations to help you procure surplus materials, rank verified buyers, and calculate freight logistics.\n\nHow can I support your secondary material exchange today?",
       suggested_actions: [
         { label: "Find cardboard near Ahmedabad", action: "QUERY", prompt: "Find cardboard near Ahmedabad" },
         { label: "Who buys used pallets?", action: "QUERY", prompt: "Who buys used pallets in Gujarat?" },
@@ -86,7 +86,7 @@ export const AssistantPage: React.FC = () => {
             <Bot className="w-5 h-5 text-emerald-400" />
           </div>
           <div>
-            <h1 className="text-base font-bold text-slate-950">RELOOP AI Circular Copilot</h1>
+            <h1 className="text-base font-bold text-slate-950">LoopMarket AI Circular Copilot</h1>
             <p className="text-slate-500 text-xs">Connected to Layer 1 (MiniMax L6) & Layer 2 (Gemini Grounded Recommender)</p>
           </div>
         </div>
@@ -132,7 +132,7 @@ export const AssistantPage: React.FC = () => {
         {isLoading && (
           <div className="flex items-center gap-2 text-slate-400 text-xs italic">
             <Sparkles className="w-4 h-4 animate-spin text-emerald-500" />
-            RELOOP Copilot querying circular database...
+            LoopMarket Copilot querying circular database...
           </div>
         )}
       </div>

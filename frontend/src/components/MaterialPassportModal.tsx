@@ -125,7 +125,7 @@ export const MaterialPassportModal: React.FC<PassportProps> = ({ isOpen, onClose
                 <span className="text-emerald-700 font-semibold text-[10px]">PASSED (&lt; 8% H2O)</span>
               </div>
               <div className="p-2.5 flex items-center justify-between">
-                <span className="text-slate-600 font-medium">RELOOP Digital Passport Hash Minted</span>
+                <span className="text-slate-600 font-medium">LoopMarket Digital Passport Hash Minted</span>
                 <span className="font-mono text-[10px] text-slate-500 font-bold">{passport.verification_hash || 'SHA256-8F72A99B'}</span>
               </div>
             </div>
@@ -136,7 +136,7 @@ export const MaterialPassportModal: React.FC<PassportProps> = ({ isOpen, onClose
         {/* Footer Actions */}
         <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
           <span className="text-[11px] text-slate-500 font-mono">
-            Cryptographically signed by RELOOP Gateway
+            Cryptographically signed by LoopMarket Gateway
           </span>
           <div className="flex gap-2">
             <button
