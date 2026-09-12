@@ -14,8 +14,9 @@ class RouteQuoteRequest(BaseModel):
     vehicle_type: Optional[str] = "14-ft Electric / Bio-CNG Truck"
 
 class ConsolidationRequest(BaseModel):
-    pickups: List[Dict[str, Any]]
-    delivery_city: str = "Surat"
+    pickups: Optional[List[Dict[str, Any]]] = None
+    shipment_ids: Optional[List[str]] = None
+    delivery_city: Optional[str] = "Surat"
     truck_capacity_kg: Optional[float] = 7500.0
 
 @router.get("")

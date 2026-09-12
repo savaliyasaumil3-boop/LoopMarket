@@ -107,6 +107,7 @@ class MaterialCreate(BaseModel):
     location_city: str
     delivery_options: Optional[str] = "Seller Arranged or Buyer Pickup"
     primary_image_url: Optional[str] = None
+    seller_id: Optional[str] = None
 
 # --- REQUIREMENT CREATE SCHEMAS ---
 class RequirementCreate(BaseModel):
@@ -119,6 +120,7 @@ class RequirementCreate(BaseModel):
     max_acceptable_distance_km: Optional[float] = 150.0
     target_price_per_kg: float
     destination_city: str
+    buyer_id: Optional[str] = None
 
 # --- ORDER & ESCROW SCHEMAS ---
 class OrderCreate(BaseModel):
@@ -126,6 +128,7 @@ class OrderCreate(BaseModel):
     quantity: float
     unit_price: float
     logistics_cost: Optional[float] = 0.0
+    buyer_id: Optional[str] = None
 
 class OrderStatusUpdate(BaseModel):
     status: str
