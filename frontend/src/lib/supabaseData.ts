@@ -68,3 +68,58 @@ export async function fetchRequirements(filters: Record<string, any> = {}) {
   if (error) throw error;
   return data;
 }
+
+/**
+ * Insert a new contract record into Supabase table 'contracts'.
+ */
+export async function addContract(data: Record<string, any>) {
+  try {
+    const { data: result, error } = await supabase.from('contracts').insert([data]);
+    if (error) {
+      console.warn('Supabase DB contracts insert notice:', error.message);
+    }
+    return result;
+  } catch (err: any) {
+    console.warn('Supabase DB contracts insert skipped:', err.message);
+    return null;
+  }
+}
+
+/**
+ * Fetch contracts with optional query filters from Supabase.
+ */
+export async function fetchContracts(filters: Record<string, any> = {}) {
+  try {
+    let query = supabase.from('contracts').select('*');
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== 'All') {
+        query = query.eq(key, value);
+      }
+    });
+    const { data, error } = await query;
+    if (error) {
+      console.warn('Supabase DB contracts fetch notice:', error.message);
+      return [];
+    }
+    return data || [];
+  } catch (err: any) {
+    console.warn('Supabase DB contracts fetch skipped:', err.message);
+    return [];
+  }
+}
+
+/**
+ * Update contract status/signature in Supabase table 'contracts'.
+ */
+export async function updateContract(id: string | number, updates: Record<string, any>) {
+  try {
+    const { data, error } = await supabase.from('contracts').update(updates).eq('id', id);
+    if (error) {
+      console.warn('Supabase DB contract update notice:', error.message);
+    }
+    return data;
+  } catch (err: any) {
+    console.warn('Supabase DB contract update skipped:', err.message);
+    return null;
+  }
+}
