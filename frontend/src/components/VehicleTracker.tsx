@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { MapPin, Truck, Navigation, Clock, Phone, Star, AlertCircle } from 'lucide-react';
+import { MapPin, Truck, Navigation, Clock, Phone, Star } from 'lucide-react';
+import { GoogleMapsView } from './GoogleMapsView';
 
 interface VehicleLocation {
   lat: number;
@@ -71,26 +72,23 @@ export const VehicleTracker: React.FC<VehicleTrackerProps> = ({
         <span className="text-xs font-mono">ETA: {estimatedArrival}</span>
       </div>
 
-      {/* Map Container - We'll use Leaflet */}
+      {/* Map Container */}
       <div className="relative bg-slate-100 h-80">
-        <div id={`map-${shipmentId}`} className="w-full h-full">
-          {/* Map will be rendered here */}
-          <div className="absolute inset-0 flex items-center justify-center bg-slate-900 text-white">
-            <div className="text-center space-y-2">
-              <Navigation className="w-12 h-12 mx-auto text-emerald-400 animate-pulse" />
-              <p className="text-sm font-bold">Live Tracking Active</p>
-              <p className="text-xs text-slate-400">Map will load here</p>
-            </div>
-          </div>
-        </div>
+        <GoogleMapsView
+          origin={origin}
+          destination={destination}
+          vehicleLocation={currentLocation ? { lat: currentLocation.lat, lng: currentLocation.lng } : undefined}
+          showRoute={true}
+          showLiveTracking={isLive}
+        />
 
         {/* Floating Stats */}
-        <div className="absolute top-4 left-4 right-4 flex gap-2">
-          <div className="bg-white/95 backdrop-blur-sm border border-slate-200 rounded-lg px-3 py-2 flex items-center gap-2 text-xs font-bold shadow-lg">
+        <div className="absolute top-4 left-4 right-4 flex gap-2 z-10 pointer-events-none">
+          <div className="bg-white/95 backdrop-blur-sm border border-slate-200 rounded-lg px-3 py-2 flex items-center gap-2 text-xs font-bold shadow-lg pointer-events-auto">
             <Truck className="w-4 h-4 text-emerald-600" />
             <span>{currentLocation?.speed_kmh || 0} km/h</span>
           </div>
-          <div className="bg-white/95 backdrop-blur-sm border border-slate-200 rounded-lg px-3 py-2 flex items-center gap-2 text-xs font-bold shadow-lg">
+          <div className="bg-white/95 backdrop-blur-sm border border-slate-200 rounded-lg px-3 py-2 flex items-center gap-2 text-xs font-bold shadow-lg pointer-events-auto">
             <MapPin className="w-4 h-4 text-blue-600" />
             <span>{distanceRemaining} km away</span>
           </div>
