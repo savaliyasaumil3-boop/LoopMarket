@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
-import { addContract, fetchContracts, updateContract } from '../lib/supabaseData';
+import { addContract, fetchContracts, updateContract, fetchMaterials } from '../lib/supabaseData';
 
 // Fallback demo contracts if DB unpopulated
 const DEFAULT_CONTRACTS = [
@@ -97,8 +97,12 @@ export const ContractsPage: React.FC = () => {
 
   // New Contract Form
   const [partnerCompanyId, setPartnerCompanyId] = useState('');
+  const [customPartnerName, setCustomPartnerName] = useState('');
   const [partnerRole, setPartnerRole] = useState<'BUYER' | 'SELLER'>('BUYER');
   const [companiesList, setCompaniesList] = useState<any[]>([]);
+  const [activeListings, setActiveListings] = useState<any[]>([]);
+  const [selectedListingId, setSelectedListingId] = useState('');
+
   const [materialName, setMaterialName] = useState('Corrugated Cardboard OCC 11');
   const [quantityKg, setQuantityKg] = useState<number>(5000);
   const [unitPrice, setUnitPrice] = useState<number>(14.5);
@@ -110,7 +114,33 @@ export const ContractsPage: React.FC = () => {
   useEffect(() => {
     loadContracts();
     api.getCompanies().then(res => setCompaniesList(res || []));
+    loadActiveListings();
   }, [statusFilter, roleTab]);
+
+  const loadActiveListings = async () => {
+    try {
+      const [sbMats, apiMats] = await Promise.all([
+        fetchMaterials().catch(() => []),
+        api.getMaterials().catch(() => [])
+      ]);
+
+      let cached: any[] = [];
+      try {
+        cached = JSON.parse(localStorage.getItem('loopmarket_user_listings') || '[]');
+      } catch {
+        cached = [];
+      }
+
+      const map = new Map<string, any>();
+      (apiMats || []).forEach((m: any) => map.set(String(m.id), m));
+      (sbMats || []).forEach((m: any) => map.set(String(m.id), { ...map.get(String(m.id)), ...m }));
+      (cached || []).forEach((m: any) => map.set(String(m.id), { ...map.get(String(m.id)), ...m }));
+
+      setActiveListings(Array.from(map.values()));
+    } catch {
+      // ignore
+    }
+  };
 
   const loadContracts = async () => {
     setLoading(true);
@@ -186,18 +216,38 @@ export const ContractsPage: React.FC = () => {
     setLoading(false);
   };
 
+  const handleSelectListing = (listingId: string) => {
+    setSelectedListingId(listingId);
+    if (!listingId) return;
+
+    const selectedLot = activeListings.find(l => String(l.id) === String(listingId));
+    if (selectedLot) {
+      setMaterialName(selectedLot.name || `${selectedLot.category || 'Packaging'} Lot`);
+      if (selectedLot.quantity_kg || selectedLot.quantity) {
+        setQuantityKg(Number(selectedLot.quantity_kg || selectedLot.quantity));
+      }
+      if (selectedLot.price_per_unit) {
+        setUnitPrice(Number(selectedLot.price_per_unit));
+      }
+      if (selectedLot.seller_name || selectedLot.location_city) {
+        setCustomPartnerName(selectedLot.seller_name || `Secondary Material Supplier (${selectedLot.location_city || 'Ahmedabad'})`);
+      }
+    }
+  };
+
   const handleCreateContract = async (e: React.FormEvent) => {
     e.preventDefault();
-    const partnerComp = companiesList.find(c => String(c.id) === String(partnerCompanyId)) || companiesList[0];
+    const partnerComp = companiesList.find(c => String(c.id) === String(partnerCompanyId));
+    const partnerNameDisplay = customPartnerName || partnerComp?.name || (partnerRole === 'BUYER' ? 'GreenPack Industries Ltd' : 'Gujarat Circular Polymers & Pulp');
     const contractNum = `CTR-2026-${Math.floor(1000 + Math.random() * 9000)}`;
 
     const newContractPayload = {
       contract_number: contractNum,
       title: `${materialName} Supply Agreement`,
       seller_id: partnerRole === 'BUYER' ? (company?.id || 'comp-demo-1') : (partnerComp?.id || 'comp-demo-2'),
-      seller_name: partnerRole === 'BUYER' ? (company?.name || 'ABC Manufacturing Pvt Ltd') : (partnerComp?.name || 'Partner Facility'),
+      seller_name: partnerRole === 'BUYER' ? (company?.name || 'ABC Manufacturing Pvt Ltd') : partnerNameDisplay,
       buyer_id: partnerRole === 'BUYER' ? (partnerComp?.id || 'comp-demo-2') : (company?.id || 'comp-demo-1'),
-      buyer_name: partnerRole === 'BUYER' ? (partnerComp?.name || 'Partner Facility') : (company?.name || 'ABC Manufacturing Pvt Ltd'),
+      buyer_name: partnerRole === 'BUYER' ? partnerNameDisplay : (company?.name || 'ABC Manufacturing Pvt Ltd'),
       buyer_city: partnerComp?.city || 'Ahmedabad',
       material_name: materialName,
       quantity_kg: quantityKg,
@@ -215,7 +265,6 @@ export const ContractsPage: React.FC = () => {
     };
 
     try {
-      // 1. Save to FastAPI Backend API
       await api.createContract({
         seller_id: newContractPayload.seller_id,
         buyer_id: newContractPayload.buyer_id,
@@ -231,7 +280,6 @@ export const ContractsPage: React.FC = () => {
       console.warn('Backend API contract create notice:', apiErr);
     }
 
-    // 2. Save to Supabase DB table 'contracts'
     try {
       await addContract(newContractPayload);
     } catch (sbErr) {
@@ -658,19 +706,45 @@ export const ContractsPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="space-y-1">
-                <label className="font-semibold text-slate-700">Contracting Partner Company *</label>
+              <div className="space-y-1 bg-emerald-50/60 p-3 rounded-lg border border-emerald-100">
+                <label className="font-semibold text-emerald-900 text-xs flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                  Link Active Material Listing (Auto-Fills Details)
+                </label>
+                <select
+                  value={selectedListingId}
+                  onChange={(e) => handleSelectListing(e.target.value)}
+                  className="b2b-input font-medium bg-white"
+                >
+                  <option value="">-- Select from your active material lots (Optional) --</option>
+                  {activeListings.map(item => (
+                    <option key={item.id} value={item.id}>
+                      {item.name || item.title || 'Material Lot'} ({item.quantity_kg || item.quantity || 0} kg @ ₹{item.price_per_unit || 0}/kg)
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="font-semibold text-slate-700 block">Contracting Partner Company *</label>
                 <select
                   value={partnerCompanyId}
                   onChange={(e) => setPartnerCompanyId(e.target.value)}
-                  className="b2b-input font-medium"
-                  required
+                  className="b2b-input font-medium mb-1"
                 >
-                  <option value="">Select partner facility...</option>
+                  <option value="">Select partner facility from network...</option>
                   {companiesList.map(c => (
-                    <option key={c.id} value={c.id}>{c.name} ({c.city})</option>
+                    <option key={c.id} value={c.id}>{c.name} ({c.city || 'Gujarat'})</option>
                   ))}
                 </select>
+                <input
+                  type="text"
+                  placeholder="Or enter custom partner company name..."
+                  value={customPartnerName}
+                  onChange={(e) => setCustomPartnerName(e.target.value)}
+                  className="b2b-input font-medium text-xs bg-slate-50"
+                  required={!partnerCompanyId}
+                />
               </div>
 
               <div className="space-y-1">
