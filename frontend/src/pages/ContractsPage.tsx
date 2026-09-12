@@ -95,7 +95,7 @@ export const ContractsPage: React.FC = () => {
           onClick={() => setShowAddModal(true)}
           className="px-4 py-2.5 bg-slate-950 hover:bg-slate-800 text-white rounded-lg font-bold text-xs flex items-center gap-1.5 transition self-start sm:self-auto shadow-sm"
         >
-          <Plus className="w-4 h-4" /> + Add Contract
+          <Plus className="w-4 h-4 text-emerald-400" /> Create Contract
         </button>
       </div>
 
