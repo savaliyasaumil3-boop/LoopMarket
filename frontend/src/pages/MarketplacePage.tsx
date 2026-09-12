@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { 
   Search, Filter, Sparkles, ShieldCheck, MapPin, 
@@ -128,6 +128,7 @@ export const MarketplacePage: React.FC = () => {
   // Modals
   const [selectedWhyMaterial, setSelectedWhyMaterial] = useState<any | null>(null);
   const [selectedPassportMaterial, setSelectedPassportMaterial] = useState<any | null>(null);
+  const fetchRequestRef = useRef(0);
 
   useEffect(() => {
     fetchMaterials();
@@ -140,6 +141,7 @@ export const MarketplacePage: React.FC = () => {
   }, [initialSearch]);
 
   const fetchMaterials = async () => {
+    const requestId = ++fetchRequestRef.current;
     setLoading(true);
 
     // 1. Read from LocalStorage (user uploaded lots)
@@ -158,10 +160,18 @@ export const MarketplacePage: React.FC = () => {
       console.warn('Supabase marketplace load notice:', e);
     }
 
-    // Combine into deduplicated map using curated default marketplace materials
+    // 3. Fetch from FastAPI Backend API
+    let apiData: any[] = [];
+    try {
+      apiData = (await api.getMaterials().catch(() => [])) || [];
+    } catch (e) {
+      console.warn('Backend marketplace load notice:', e);
+    }
+
+    // Combine into deduplicated map
     const map = new Map<string, any>();
 
-    // Add default curated marketplace materials
+    // Add default materials first
     DEFAULT_MARKETPLACE_MATERIALS.forEach(item => map.set(String(item.id), item));
 
     // Include newly posted materials from Supabase & localStorage
@@ -227,8 +237,10 @@ export const MarketplacePage: React.FC = () => {
       allLots.sort((a, b) => Number(b.match_score) - Number(a.match_score));
     }
 
-    setMaterials(allLots);
-    setLoading(false);
+    if (requestId === fetchRequestRef.current) {
+      setMaterials(allLots);
+      setLoading(false);
+    }
   };
 
   const handleNlSearch = async (textToSearch?: string) => {
@@ -251,7 +263,6 @@ export const MarketplacePage: React.FC = () => {
       // ignore
     } finally {
       setIsParsingNl(false);
-      fetchMaterials();
     }
   };
 
