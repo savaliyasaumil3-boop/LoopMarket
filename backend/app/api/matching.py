@@ -107,7 +107,7 @@ async def get_personalized_recommendations(
     }
 
 @router.get("/{material_id}/best-buyers")
-def find_best_buyers_for_material(material_id: str, db: Session = Depends(get_db)):
+async def find_best_buyers_for_material(material_id: str, db: Session = Depends(get_db)):
     """
     Scenario Demo: Takes a material listing and identifies the highest scoring buyer companies,
     calculates 5-factor hybrid score, delivered costs, and returns point-by-point explainability.
@@ -142,6 +142,17 @@ def find_best_buyers_for_material(material_id: str, db: Session = Depends(get_db
         })
 
     ranked_buyers.sort(key=lambda x: x["scores"]["match_score"], reverse=True)
+    top_matches = ranked_buyers[:6]
+    
+    # Generate an overall AI summary for the top match
+    ai_summary = "No matches found."
+    if top_matches:
+        top_buyer = top_matches[0]
+        ai_summary = await gemini_layer2.generate_match_explanation(
+            material_name=mat.name,
+            buyer_name=top_buyer["buyer_name"],
+            score_breakdown=top_buyer["scores"]
+        )
 
     return {
         "material": {
@@ -153,11 +164,12 @@ def find_best_buyers_for_material(material_id: str, db: Session = Depends(get_db
             "price_per_unit": mat.price_per_unit,
             "location_city": mat.location_city
         },
-        "top_matches": ranked_buyers[:6]
+        "top_matches": top_matches,
+        "ai_insight": ai_summary
     }
 
 @router.get("/{material_id}/why-match")
-def explain_material_match(
+async def explain_material_match(
     material_id: str,
     buyer_id: Optional[str] = None,
     db: Session = Depends(get_db)
@@ -169,10 +181,17 @@ def explain_material_match(
     buyer = db.query(Company).filter(Company.id == buyer_id).first() if buyer_id else db.query(Company).first()
     score_res = matching_engine.score_material_buyer_match(mat, buyer)
 
+    ai_explanation = await gemini_layer2.generate_match_explanation(
+        material_name=mat.name,
+        buyer_name=buyer.name,
+        score_breakdown=score_res
+    )
+
     return {
         "material_name": mat.name,
         "buyer_name": buyer.name,
         "breakdown": score_res,
+        "ai_explanation": ai_explanation,
         "weights": {
             "material_compatibility_pct": 30,
             "quantity_compatibility_pct": 20,

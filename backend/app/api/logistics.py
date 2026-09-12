@@ -80,10 +80,16 @@ def get_route_quote(req: RouteQuoteRequest):
         vehicle_type=req.vehicle_type or "14-ft Electric / Bio-CNG Truck"
     )
 
+from app.ai.layer2_gemini import gemini_layer2
+
 @router.post("/optimize")
-def optimize_consolidation(req: ConsolidationRequest):
-    return logistics_optimizer.optimize_consolidated_shipment(
+async def optimize_consolidation(req: ConsolidationRequest):
+    result = logistics_optimizer.optimize_consolidated_shipment(
         pickups=req.pickups,
         delivery_city=req.delivery_city,
         truck_capacity_kg=req.truck_capacity_kg or 7500.0
     )
+    
+    ai_insight = await gemini_layer2.generate_logistics_insight(result)
+    result["ai_insight"] = ai_insight
+    return result

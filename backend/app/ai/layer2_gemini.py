@@ -36,7 +36,7 @@ class GeminiLayer2Service:
         if not self.api_key or len(self.api_key) < 5:
             return "Gemini API key is not configured. Please add GEMINI_API_KEY to your environment."
             
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={self.api_key.strip()}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key={self.api_key.strip()}"
         
         prompt = f"{system_prompt}\n\nUser: {user_message}" if system_prompt else user_message
         
@@ -130,7 +130,7 @@ class GeminiLayer2Service:
         candidates: List[Dict[str, Any]],
         category_label: str
     ) -> List[RecommendationItem]:
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={self.api_key}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key={self.api_key}"
         
         prompt = f"""You are the Layer 2 Recommendation Engine for RELOOP circular B2B exchange.
 Given buyer company context and candidate packaging materials, score and write a concise, strictly factual 1-sentence explanation for each material.
@@ -192,5 +192,74 @@ Return ONLY valid JSON matching this schema:
                         )
                 return items
             return []
+
+    async def generate_simulator_insight(self, original_best: Dict[str, Any], new_best: Dict[str, Any], multiplier: float) -> str:
+        if not self.api_key or len(self.api_key) < 5:
+            return f"With a transport multiplier of {multiplier}, the new best match is {new_best.get('name', 'Unknown')}."
+            
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key={self.api_key.strip()}"
+        prompt = f"""You are an AI analyst for a supply chain platform. Compare these two simulation results.
+Original Best Partner: {json.dumps(original_best)}
+New Best Partner (with transport multiplier {multiplier}): {json.dumps(new_best)}
+
+Write a concise 1-2 sentence business insight explaining why the new partner is better under the new transport rates."""
+        
+        payload = {"contents": [{"parts": [{"text": prompt}]}]}
+        headers = {"Content-Type": "application/json"}
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                resp = await client.post(url, headers=headers, json=payload)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    return data["candidates"][0]["content"]["parts"][0]["text"]
+        except Exception as e:
+            print(f"[Gemini Layer 2] Simulator insight error: {e}")
+        return f"With a transport multiplier of {multiplier}, the new best match is {new_best.get('name', 'Unknown')}."
+
+    async def generate_logistics_insight(self, consolidation_data: Dict[str, Any]) -> str:
+        if not self.api_key or len(self.api_key) < 5:
+            return "Consolidated milk-runs reduce distance and overall freight costs."
+            
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key={self.api_key.strip()}"
+        prompt = f"""You are a logistics AI assistant. Analyze this milk-run consolidation scenario:
+Data: {json.dumps(consolidation_data)}
+
+Write a concise 1-2 sentence insight about the cost and emissions savings from consolidating these shipments instead of running separate trucks."""
+        
+        payload = {"contents": [{"parts": [{"text": prompt}]}]}
+        headers = {"Content-Type": "application/json"}
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                resp = await client.post(url, headers=headers, json=payload)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    return data["candidates"][0]["content"]["parts"][0]["text"]
+        except Exception as e:
+            print(f"[Gemini Layer 2] Logistics insight error: {e}")
+        return "Consolidated milk-runs reduce distance and overall freight costs."
+
+    async def generate_match_explanation(self, material_name: str, buyer_name: str, score_breakdown: Dict[str, Any]) -> str:
+        if not self.api_key or len(self.api_key) < 5:
+            return f"Good match based on deterministic factors."
+            
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key={self.api_key.strip()}"
+        prompt = f"""You are an AI matchmaking assistant in a B2B circular economy platform.
+Material: {material_name}
+Buyer: {buyer_name}
+Match Scores (0-100): {json.dumps(score_breakdown)}
+
+Write a concise, persuasive 2-sentence paragraph explaining why this buyer is a strong match for this material, focusing on the highest scoring categories."""
+        
+        payload = {"contents": [{"parts": [{"text": prompt}]}]}
+        headers = {"Content-Type": "application/json"}
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                resp = await client.post(url, headers=headers, json=payload)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    return data["candidates"][0]["content"]["parts"][0]["text"]
+        except Exception as e:
+            print(f"[Gemini Layer 2] Match explanation error: {e}")
+        return f"Good match based on deterministic factors."
 
 gemini_layer2 = GeminiLayer2Service()
