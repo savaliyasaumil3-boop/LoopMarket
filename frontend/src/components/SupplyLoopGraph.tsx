@@ -157,31 +157,45 @@ export const SupplyLoopGraph: React.FC<{ companyId?: string }> = ({ companyId })
           <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 items-center my-auto py-4">
             
             <style>{`
-              @keyframes flowLineIn {
-                from { stroke-dashoffset: 8; }
+              @keyframes flowLine {
+                from { stroke-dashoffset: 12; }
                 to { stroke-dashoffset: 0; }
               }
-              @keyframes flowLineOut {
-                from { stroke-dashoffset: 0; }
-                to { stroke-dashoffset: 8; }
-              }
-              .animate-flow-in {
-                animation: flowLineIn 0.8s linear infinite;
-              }
-              .animate-flow-out {
-                animation: flowLineOut 0.8s linear infinite;
+              .animate-flow {
+                animation: flowLine 1s linear infinite;
               }
             `}</style>
+
+            {/* Connection Lines Overlay */}
+            <div className="absolute inset-0 z-0 hidden md:block pointer-events-none">
+              <svg className="w-full h-full overflow-visible">
+                {/* Suppliers to Hub */}
+                <line x1="25%" y1="32%" x2="35%" y2="32%" stroke="#34d399" strokeWidth="2" strokeDasharray="6 6" strokeLinecap="round" className="animate-flow" />
+                <line x1="35%" y1="32%" x2="35%" y2="50%" stroke="#34d399" strokeWidth="2" strokeDasharray="6 6" strokeLinecap="round" className="animate-flow" />
+                
+                <line x1="25%" y1="68%" x2="35%" y2="68%" stroke="#34d399" strokeWidth="2" strokeDasharray="6 6" strokeLinecap="round" className="animate-flow" />
+                <line x1="35%" y1="68%" x2="35%" y2="50%" stroke="#34d399" strokeWidth="2" strokeDasharray="6 6" strokeLinecap="round" className="animate-flow" />
+                
+                <line x1="35%" y1="50%" x2="50%" y2="50%" stroke="#34d399" strokeWidth="2" strokeDasharray="6 6" strokeLinecap="round" className="animate-flow" />
+                
+                {/* Hub to Buyers */}
+                <line x1="50%" y1="49%" x2="65%" y2="49%" stroke="#60a5fa" strokeWidth="2" strokeDasharray="6 6" strokeLinecap="round" className="animate-flow" />
+                <line x1="65%" y1="49%" x2="65%" y2="18%" stroke="#60a5fa" strokeWidth="2" strokeDasharray="6 6" strokeLinecap="round" className="animate-flow" />
+                <line x1="65%" y1="18%" x2="75%" y2="18%" stroke="#60a5fa" strokeWidth="2" strokeDasharray="6 6" strokeLinecap="round" className="animate-flow" />
+                
+                <line x1="65%" y1="49%" x2="75%" y2="49%" stroke="#60a5fa" strokeWidth="2" strokeDasharray="6 6" strokeLinecap="round" className="animate-flow" />
+                
+                {/* Hub to Recycler */}
+                <line x1="50%" y1="51%" x2="65%" y2="51%" stroke="#fbbf24" strokeWidth="2" strokeDasharray="6 6" strokeLinecap="round" className="animate-flow" />
+                <line x1="65%" y1="51%" x2="65%" y2="82%" stroke="#fbbf24" strokeWidth="2" strokeDasharray="6 6" strokeLinecap="round" className="animate-flow" />
+                <line x1="65%" y1="82%" x2="75%" y2="82%" stroke="#fbbf24" strokeWidth="2" strokeDasharray="6 6" strokeLinecap="round" className="animate-flow" />
+              </svg>
+            </div>
 
             {/* Left Column: Suppliers */}
             <div className="space-y-3 sm:space-y-4 min-w-0">
               {suppliers.map((s, idx) => (
                 <div key={s.id} className="relative w-full">
-                  <div className="hidden md:block absolute top-1/2 -right-6 w-6 h-1 -translate-y-1/2 z-0 pointer-events-none">
-                    <svg width="100%" height="100%" className="overflow-visible">
-                      <line x1="0" y1="50%" x2="24" y2="50%" stroke="#34d399" strokeWidth="2" strokeDasharray="4 4" strokeOpacity="0.8" className="animate-flow-in" />
-                    </svg>
-                  </div>
                   <div
                     onClick={() => setSelectedNode(s)}
                     className={`relative z-10 cursor-pointer p-3 sm:p-3.5 rounded-lg border transition-all text-left ${
@@ -241,11 +255,6 @@ export const SupplyLoopGraph: React.FC<{ companyId?: string }> = ({ companyId })
             <div className="space-y-3 sm:space-y-4 min-w-0">
               {buyers.map((b, idx) => (
                 <div key={b.id} className="relative w-full">
-                  <div className="hidden md:block absolute top-1/2 -left-6 w-6 h-1 -translate-y-1/2 z-0 pointer-events-none">
-                    <svg width="100%" height="100%" className="overflow-visible">
-                      <line x1="0" y1="50%" x2="24" y2="50%" stroke="#60a5fa" strokeWidth="2" strokeDasharray="4 4" strokeOpacity="0.8" className="animate-flow-out" />
-                    </svg>
-                  </div>
                   <div
                     onClick={() => setSelectedNode(b)}
                     className={`relative z-10 cursor-pointer p-3 sm:p-3.5 rounded-lg border transition-all text-left ${
@@ -271,11 +280,6 @@ export const SupplyLoopGraph: React.FC<{ companyId?: string }> = ({ companyId })
 
               {recyclers.map((r) => (
                 <div key={r.id} className="relative w-full">
-                  <div className="hidden md:block absolute top-1/2 -left-6 w-6 h-1 -translate-y-1/2 z-0 pointer-events-none">
-                    <svg width="100%" height="100%" className="overflow-visible">
-                      <line x1="0" y1="50%" x2="24" y2="50%" stroke="#fbbf24" strokeWidth="2" strokeDasharray="4 4" strokeOpacity="0.8" className="animate-flow-out" />
-                    </svg>
-                  </div>
                   <div
                     onClick={() => setSelectedNode(r)}
                     className={`relative z-10 cursor-pointer p-3 sm:p-3.5 rounded-lg border transition-all text-left ${
