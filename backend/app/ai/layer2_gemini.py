@@ -47,8 +47,8 @@ class GeminiLayer2Service:
     async def generate_copilot_response(self, user_message: str, system_prompt: str = "") -> str:
         if not self.api_key or len(self.api_key) < 5:
             return "Gemini API key is not configured. Please add GEMINI_API_KEY to your environment."
-            
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key={self.api_key.strip()}"
+
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={self.api_key.strip()}"
         
         prompt = f"{system_prompt}\n\nUser: {user_message}" if system_prompt else user_message
         
@@ -65,7 +65,18 @@ class GeminiLayer2Service:
                 # Rate limit exceeded – fall back to a deterministic placeholder response
                 print("[Gemini Layer 2] Gemini API rate limit exceeded (429). Using fallback response.")
                 return "Sorry, the AI service is currently busy. Please try again later."
-            return f"Gemini API returned error: {resp.status_code}"
+            # Log detailed error for debugging
+            try:
+                error_data = resp.json()
+                error_msg = error_data.get("error", {}).get("message", f"Status {resp.status_code}")
+                print(f"[Gemini Layer 2] API Error: {error_msg}")
+                if resp.status_code == 400 and "API key not valid" in error_msg:
+                    return "⚠️ Gemini API key is invalid. Please get a valid API key from https://aistudio.google.com/apikey and update it in backend/.env file."
+                if resp.status_code == 404:
+                    return "⚠️ Gemini model endpoint not found. The API configuration may need updating."
+                return f"Gemini API error: {error_msg}"
+            except:
+                return f"Gemini API returned error: {resp.status_code}"
         except Exception as e:
             print(f"[Gemini Layer 2] Copilot chat error: {e}")
             return "I am currently unable to reach the Gemini service."
@@ -144,7 +155,7 @@ class GeminiLayer2Service:
         candidates: List[Dict[str, Any]],
         category_label: str
     ) -> List[RecommendationItem]:
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key={self.api_key}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key={self.api_key}"
         
         prompt = f"""You are the Layer 2 Recommendation Engine for RELOOP circular B2B exchange.
 Given buyer company context and candidate packaging materials, score and write a concise, strictly factual 1-sentence explanation for each material.
@@ -213,7 +224,7 @@ Return ONLY valid JSON matching this schema:
         if not self.api_key or len(self.api_key) < 5:
             return f"With a transport multiplier of {multiplier}, the new best match is {new_best.get('name', 'Unknown')}."
             
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key={self.api_key.strip()}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={self.api_key.strip()}"
         prompt = f"""You are an AI analyst for a supply chain platform. Compare these two simulation results.
 Original Best Partner: {json.dumps(original_best)}
 New Best Partner (with transport multiplier {multiplier}): {json.dumps(new_best)}
@@ -234,7 +245,7 @@ Write a concise 1-2 sentence business insight explaining why the new partner is 
         if not self.api_key or len(self.api_key) < 5:
             return "Consolidated milk-runs reduce distance and overall freight costs."
             
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key={self.api_key.strip()}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={self.api_key.strip()}"
         prompt = f"""You are a logistics AI assistant. Analyze this milk-run consolidation scenario:
 Data: {json.dumps(consolidation_data)}
 
@@ -254,7 +265,7 @@ Write a concise 1-2 sentence insight about the cost and emissions savings from c
         if not self.api_key or len(self.api_key) < 5:
             return f"Good match based on deterministic factors."
             
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key={self.api_key.strip()}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={self.api_key.strip()}"
         prompt = f"""You are an AI matchmaking assistant in a B2B circular economy platform.
 Material: {material_name}
 Buyer: {buyer_name}
