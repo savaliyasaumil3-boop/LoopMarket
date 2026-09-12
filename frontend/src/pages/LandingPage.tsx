@@ -2,10 +2,13 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { 
   ArrowRight, ShieldCheck, Sparkles, RefreshCw, Truck, 
-  Leaf, ChevronRight, BarChart3, Layers, CheckCircle2, Box
+  Leaf, ChevronRight, BarChart3, Layers, CheckCircle2, Box, LogOut
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 export const LandingPage: React.FC = () => {
+  const { user, isAuthenticated, logout } = useAuth();
+
   return (
     <div className="min-h-screen bg-white text-slate-900 selection:bg-slate-900 selection:text-white">
       
@@ -29,19 +32,46 @@ export const LandingPage: React.FC = () => {
             <Link to="/logistics" className="hover:text-slate-950 transition">Logistics Network</Link>
           </div>
 
-          <div className="flex items-center gap-3">
-            <Link 
-              to="/login"
-              className="text-xs font-semibold px-4 py-2 rounded-md hover:bg-slate-100 text-slate-700 transition"
-            >
-              Sign In
-            </Link>
-            <Link 
-              to="/dashboard"
-              className="text-xs font-semibold px-4 py-2 rounded-md bg-slate-950 text-white hover:bg-slate-800 transition flex items-center gap-1.5 shadow-sm"
-            >
-              Launch Platform <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
+          <div className="flex items-center gap-2.5">
+            {isAuthenticated ? (
+              <>
+                <Link 
+                  to="/dashboard"
+                  className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-900 transition flex items-center gap-1.5"
+                >
+                  Dashboard ({user?.full_name?.split(' ')[0] || 'Account'})
+                </Link>
+                <button
+                  onClick={logout}
+                  className="text-xs font-semibold px-2.5 py-1.5 rounded-lg text-rose-600 hover:bg-rose-50 border border-rose-200 transition flex items-center gap-1 cursor-pointer"
+                  title="Sign Out"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Log Out</span>
+                </button>
+              </>
+            ) : (
+              <>
+                <Link 
+                  to="/login"
+                  className="text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-slate-100 text-slate-700 transition"
+                >
+                  Sign In
+                </Link>
+                <Link 
+                  to="/signup"
+                  className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white transition shadow-sm"
+                >
+                  Sign Up
+                </Link>
+                <Link 
+                  to="/dashboard"
+                  className="hidden sm:flex text-xs font-semibold px-3.5 py-1.5 rounded-lg bg-slate-950 text-white hover:bg-slate-800 transition items-center gap-1.5 shadow-sm"
+                >
+                  Launch App <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </nav>

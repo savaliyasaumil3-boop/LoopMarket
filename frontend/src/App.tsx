@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Sidebar } from './components/Sidebar';
 import { Navbar } from './components/Navbar';
@@ -25,15 +25,22 @@ import { AdminDemoPage } from './pages/AdminDemoPage';
 
 const AppLayout: React.FC = () => {
   const [showNotifications, setShowNotifications] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   return (
     <div className="flex min-h-screen bg-slate-50 font-sans text-slate-900">
-      {/* Fixed Left Sidebar */}
-      <Sidebar />
+      {/* Sticky & Responsive Left Sidebar */}
+      <Sidebar 
+        isOpen={mobileSidebarOpen}
+        onClose={() => setMobileSidebarOpen(false)}
+      />
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
-        <Navbar onOpenNotifications={() => setShowNotifications(true)} />
+        <Navbar 
+          onOpenNotifications={() => setShowNotifications(true)} 
+          onToggleSidebar={() => setMobileSidebarOpen(!mobileSidebarOpen)}
+        />
         <main className="flex-1 pb-16">
           <Outlet />
         </main>
@@ -48,6 +55,25 @@ const AppLayout: React.FC = () => {
   );
 };
 
+const ProtectedAppLayout: React.FC = () => {
+  const { isAuthenticated, isLoading } = useAuth();
+  const location = useLocation();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center text-white">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-400"></div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to={`/login?redirect=${encodeURIComponent(location.pathname)}`} replace />;
+  }
+
+  return <AppLayout />;
+};
+
 export const App: React.FC = () => {
   return (
     <AuthProvider>
@@ -59,7 +85,7 @@ export const App: React.FC = () => {
           <Route path="/signup" element={<SignupPage />} />
 
           {/* Authenticated Dashboard Shell */}
-          <Route element={<AppLayout />}>
+          <Route element={<ProtectedAppLayout />}>
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/marketplace" element={<MarketplacePage />} />
             <Route path="/materials/:id" element={<MaterialDetailPage />} />
