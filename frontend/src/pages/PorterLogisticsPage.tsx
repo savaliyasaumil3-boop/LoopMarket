@@ -3,7 +3,7 @@ import {
   Truck, MapPin, Package, Phone, Star, Navigation, Clock,
   CheckCircle, AlertCircle, Loader, ArrowRight, User, MapPinned
 } from 'lucide-react';
-import { porterAPI, PorterAddress } from '../lib/porterAPI';
+import { porterAPI, type PorterAddress } from '../lib/porterAPI';
 import { GoogleMapsView } from '../components/GoogleMapsView';
 
 interface VehicleQuote {
@@ -282,8 +282,8 @@ export const PorterLogisticsPage: React.FC = () => {
         {/* Progress Steps */}
         <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
           <div className="flex items-center justify-between">
-            <div className={`flex items-center gap-3 ${step === 'address' ? 'text-emerald-600' : step !== 'address' ? 'text-slate-400' : 'text-slate-600'}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step === 'address' ? 'bg-emerald-100 text-emerald-700 font-bold' : step !== 'address' ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-600'}`}>
+            <div className={`flex items-center gap-3 ${step === 'address' ? 'text-emerald-600' : 'text-slate-400'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step === 'address' ? 'bg-emerald-100 text-emerald-700 font-bold' : 'bg-emerald-500 text-white'}`}>
                 {step !== 'address' ? <CheckCircle className="w-5 h-5" /> : '1'}
               </div>
               <span className="font-semibold text-sm">Enter Addresses</span>
