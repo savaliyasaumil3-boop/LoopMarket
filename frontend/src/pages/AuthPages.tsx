@@ -60,11 +60,16 @@ export const LoginPage: React.FC = () => {
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col justify-between selection:bg-slate-900 selection:text-white font-sans">
       {/* Top Header */}
       <header className="border-b border-slate-200 bg-white/95 backdrop-blur-md px-6 py-3.5 flex items-center justify-between sticky top-0 z-20">
-        <Link to="/" className="flex items-center gap-3">
+        <Link to="/" className="flex items-center gap-2.5">
+          <img 
+            src="/favicon.svg" 
+            alt="LoopMarket Icon" 
+            className="h-8 w-8 rounded-lg object-contain shadow-xs shrink-0" 
+          />
           <img 
             src="/loopmarket-logo.svg" 
             alt="LoopMarket" 
-            className="h-7 w-auto object-contain" 
+            className="h-6 w-auto object-contain" 
           />
           <span className="hidden sm:inline-block text-[10px] text-slate-400 font-mono tracking-wider border-l border-slate-200 pl-3">
             B2B CIRCULAR EXCHANGE
@@ -84,11 +89,16 @@ export const LoginPage: React.FC = () => {
           
           {/* Brand & Badge */}
           <div className="text-center space-y-3">
-            <div className="flex justify-center">
+            <div className="flex justify-center items-center gap-2.5">
+              <img 
+                src="/favicon.svg" 
+                alt="LoopMarket Icon" 
+                className="h-9 w-9 rounded-lg object-contain shadow-xs shrink-0" 
+              />
               <img 
                 src="/loopmarket-logo.svg" 
                 alt="LoopMarket" 
-                className="h-8 w-auto object-contain" 
+                className="h-7 w-auto object-contain" 
               />
             </div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 border border-slate-200 rounded-full text-[11px] font-medium text-slate-800">
@@ -374,11 +384,16 @@ export const SignupPage: React.FC = () => {
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col justify-between selection:bg-slate-900 selection:text-white font-sans">
       {/* Top Header */}
       <header className="border-b border-slate-200 bg-white/95 backdrop-blur-md px-6 py-3.5 flex items-center justify-between sticky top-0 z-20">
-        <Link to="/" className="flex items-center gap-3">
+        <Link to="/" className="flex items-center gap-2.5">
+          <img 
+            src="/favicon.svg" 
+            alt="LoopMarket Icon" 
+            className="h-8 w-8 rounded-lg object-contain shadow-xs shrink-0" 
+          />
           <img 
             src="/loopmarket-logo.svg" 
             alt="LoopMarket" 
-            className="h-7 w-auto object-contain" 
+            className="h-6 w-auto object-contain" 
           />
           <span className="hidden sm:inline-block text-[10px] text-slate-400 font-mono tracking-wider border-l border-slate-200 pl-3">
             FACILITY ONBOARDING

@@ -15,11 +15,16 @@ export const LandingPage: React.FC = () => {
       {/* Top Banner Navigation */}
       <nav className="border-b border-slate-200 bg-white/90 backdrop-blur-md sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-3">
+          <Link to="/" className="flex items-center gap-2.5">
+            <img 
+              src="/favicon.svg" 
+              alt="LoopMarket Icon" 
+              className="h-8 w-8 rounded-lg object-contain shadow-xs shrink-0" 
+            />
             <img 
               src="/loopmarket-logo.svg" 
               alt="LoopMarket" 
-              className="h-7 w-auto object-contain" 
+              className="h-6 w-auto object-contain" 
             />
             <span className="hidden sm:inline-block text-[10px] text-slate-400 font-mono tracking-wider border-l border-slate-200 pl-3">
               CIRCULAR PACKAGING EXCHANGE
