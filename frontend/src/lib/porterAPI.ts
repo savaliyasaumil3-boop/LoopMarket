@@ -1,5 +1,4 @@
 // Porter API Service - Real Implementation
-import axios from 'axios';
 
 const PORTER_API_BASE = 'https://pfe-apigw-uat.porter.in'; // UAT environment
 const PORTER_API_KEY = import.meta.env.VITE_PORTER_API_KEY || '';
@@ -56,76 +55,85 @@ class PorterAPIService {
     };
   }
 
+  private async request(endpoint: string, options: RequestInit = {}) {
+    const res = await fetch(`${this.baseURL}${endpoint}`, {
+      ...options,
+      headers: {
+        ...this.getHeaders(),
+        ...(options.headers as Record<string, string>),
+      },
+    });
+
+    if (!res.ok) {
+      let msg = 'Porter API Request Failed';
+      try {
+        const err = await res.json();
+        msg = err.message || err.detail || msg;
+      } catch {
+        // ignore
+      }
+      throw new Error(msg);
+    }
+
+    return res.json();
+  }
+
   // Step 1: Get Quote for available vehicles
   async getQuote(data: PorterQuoteRequest) {
     try {
-      const response = await axios.post(
-        `${this.baseURL}/v1/get_quote`,
-        data,
-        { headers: this.getHeaders() }
-      );
-      return response.data;
+      return await this.request('/v1/get_quote', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
     } catch (error: any) {
-      console.error('Porter Get Quote Error:', error.response?.data || error.message);
-      throw new Error(error.response?.data?.message || 'Failed to get quote from Porter');
+      console.error('Porter Get Quote Error:', error.message);
+      throw new Error(error.message || 'Failed to get quote from Porter');
     }
   }
 
   // Step 2: Create Order
   async createOrder(data: PorterOrderRequest) {
     try {
-      const response = await axios.post(
-        `${this.baseURL}/v1/orders/create`,
-        data,
-        { headers: this.getHeaders() }
-      );
-      return response.data;
+      return await this.request('/v1/orders/create', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
     } catch (error: any) {
-      console.error('Porter Create Order Error:', error.response?.data || error.message);
-      throw new Error(error.response?.data?.message || 'Failed to create order');
+      console.error('Porter Create Order Error:', error.message);
+      throw new Error(error.message || 'Failed to create order');
     }
   }
 
   // Step 3: Track Order
   async trackOrder(orderId: string) {
     try {
-      const response = await axios.get(
-        `${this.baseURL}/v1/orders/${orderId}`,
-        { headers: this.getHeaders() }
-      );
-      return response.data;
+      return await this.request(`/v1/orders/${orderId}`);
     } catch (error: any) {
-      console.error('Porter Track Order Error:', error.response?.data || error.message);
-      throw new Error(error.response?.data?.message || 'Failed to track order');
+      console.error('Porter Track Order Error:', error.message);
+      throw new Error(error.message || 'Failed to track order');
     }
   }
 
   // Cancel Order
   async cancelOrder(orderId: string) {
     try {
-      const response = await axios.post(
-        `${this.baseURL}/v1/orders/cancel`,
-        { order_id: orderId },
-        { headers: this.getHeaders() }
-      );
-      return response.data;
+      return await this.request('/v1/orders/cancel', {
+        method: 'POST',
+        body: JSON.stringify({ order_id: orderId }),
+      });
     } catch (error: any) {
-      console.error('Porter Cancel Order Error:', error.response?.data || error.message);
-      throw new Error(error.response?.data?.message || 'Failed to cancel order');
+      console.error('Porter Cancel Order Error:', error.message);
+      throw new Error(error.message || 'Failed to cancel order');
     }
   }
 
   // Get Order Details
   async getOrderDetails(orderId: string) {
     try {
-      const response = await axios.get(
-        `${this.baseURL}/v1/orders/${orderId}/details`,
-        { headers: this.getHeaders() }
-      );
-      return response.data;
+      return await this.request(`/v1/orders/${orderId}/details`);
     } catch (error: any) {
-      console.error('Porter Order Details Error:', error.response?.data || error.message);
-      throw new Error(error.response?.data?.message || 'Failed to get order details');
+      console.error('Porter Order Details Error:', error.message);
+      throw new Error(error.message || 'Failed to get order details');
     }
   }
 
