@@ -74,16 +74,9 @@ export async function fetchRequirements(filters: Record<string, any> = {}) {
  * Insert a new contract record into Supabase table 'contracts'.
  */
 export async function addContract(data: Record<string, any>) {
-  try {
-    const { data: result, error } = await supabase.from('contracts').insert([data]);
-    if (error) {
-      console.warn('Supabase DB contracts insert notice:', error.message);
-    }
-    return result;
-  } catch (err: any) {
-    console.warn('Supabase DB contracts insert skipped:', err.message);
-    return null;
-  }
+  const { data: result, error } = await supabase.from('contracts').insert([data]).select().single();
+  if (error) throw error;
+  return result;
 }
 
 /**
@@ -107,6 +100,25 @@ export async function fetchContracts(filters: Record<string, any> = {}) {
     console.warn('Supabase DB contracts fetch skipped:', err.message);
     return [];
   }
+}
+
+/** Fetch contracts owned by or connected to one company. */
+export async function fetchCompanyContracts(companyId: string) {
+  const { data, error } = await supabase
+    .from('contracts')
+    .select('*')
+    .or(`owner_company_id.eq.${companyId},seller_id.eq.${companyId},buyer_id.eq.${companyId}`)
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return data || [];
+}
+
+/** Update contract status or signature fields in Supabase. */
+export async function updateContract(id: string | number, updates: Record<string, any>) {
+  const { data, error } = await supabase.from('contracts').update(updates).eq('id', id);
+  if (error) throw error;
+  return data;
 }
 
 /**

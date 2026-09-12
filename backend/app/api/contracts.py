@@ -87,6 +87,11 @@ def get_contract_detail(id: str, db: Session = Depends(get_db)):
 
 @router.post("")
 def create_contract(req: ContractCreate, db: Session = Depends(get_db)):
+    seller = db.query(Company).filter(Company.id == req.seller_id).first()
+    buyer = db.query(Company).filter(Company.id == req.buyer_id).first()
+    if not seller or not buyer:
+        raise HTTPException(status_code=400, detail="Seller and buyer companies must exist before creating a contract")
+
     contract_num = f"CTR-2026-{random.randint(5000, 9999)}"
     total = req.quantity_kg * req.unit_price
 
@@ -113,7 +118,27 @@ def create_contract(req: ContractCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(contract)
 
-    return {"success": True, "id": contract.id, "contract_number": contract.contract_number, "status": contract.status}
+    return {
+        "success": True,
+        "id": contract.id,
+        "contract_number": contract.contract_number,
+        "title": contract.title,
+        "seller": {"id": seller.id, "name": seller.name, "city": seller.city},
+        "buyer": {"id": buyer.id, "name": buyer.name, "city": buyer.city},
+        "material_name": contract.material_name,
+        "quantity_kg": contract.quantity_kg,
+        "unit_price": contract.unit_price,
+        "total_amount": contract.total_amount,
+        "contract_duration": contract.contract_duration,
+        "status": contract.status,
+        "delivery_terms": contract.delivery_terms,
+        "payment_terms": contract.payment_terms,
+        "inspection_terms": contract.inspection_terms,
+        "dispute_terms": contract.dispute_terms,
+        "seller_signed": contract.seller_signed,
+        "buyer_signed": contract.buyer_signed,
+        "created_at": str(contract.created_at),
+    }
 
 @router.put("/{id}/sign")
 def sign_contract(id: str, db: Session = Depends(get_db)):

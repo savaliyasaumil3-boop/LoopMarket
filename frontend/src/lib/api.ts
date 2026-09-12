@@ -80,7 +80,12 @@ export const api = {
 
   // Contracts
   getContracts: (params: Record<string, any> = {}) => {
-    const q = new URLSearchParams(params).toString();
+    const q = new URLSearchParams(
+      Object.entries(params).reduce<Record<string, string>>((result, [key, value]) => {
+        if (value !== undefined && value !== null && value !== '') result[key] = String(value);
+        return result;
+      }, {})
+    ).toString();
     return fetchApi(`/contracts?${q}`);
   },
   getContractDetail: (id: string) => fetchApi(`/contracts/${id}`),

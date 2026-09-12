@@ -54,6 +54,7 @@ CREATE TABLE IF NOT EXISTS public.contracts (
   delivery_terms TEXT,
   payment_terms TEXT,
   inspection_terms TEXT,
+  owner_company_id TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -74,6 +75,8 @@ CREATE TABLE IF NOT EXISTS public.requirements (
 ALTER TABLE public.companies ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.materials ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.contracts ENABLE ROW LEVEL SECURITY;
+CREATE INDEX IF NOT EXISTS contracts_owner_company_idx ON public.contracts (owner_company_id);
+CREATE INDEX IF NOT EXISTS contracts_seller_buyer_idx ON public.contracts (seller_id, buyer_id);
 ALTER TABLE public.requirements ENABLE ROW LEVEL SECURITY;
 
 -- Allow Public (anon) Read & Insert Access

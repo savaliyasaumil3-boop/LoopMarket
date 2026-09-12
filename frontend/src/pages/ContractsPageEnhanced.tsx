@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
-import { addContract, fetchContracts } from '../lib/supabaseData';
+import { addContract, fetchCompanyContracts } from '../lib/supabaseData';
 import { VehicleSelection } from '../components/VehicleSelection';
 import { GoogleMapsView } from '../components/GoogleMapsView';
 
@@ -66,7 +66,7 @@ export const ContractsPage: React.FC = () => {
         }
       })
       .catch(() => setCompaniesList(DEFAULT_COMPANIES));
-  }, [statusFilter, roleTab]);
+  }, [statusFilter, roleTab, company?.id]);
 
   const loadContracts = async () => {
     setLoading(true);
@@ -82,7 +82,7 @@ export const ContractsPage: React.FC = () => {
     // 2. Fetch from Supabase
     let sbItems: any[] = [];
     try {
-      const sbData = await fetchContracts();
+      const sbData = company?.id ? await fetchCompanyContracts(company.id) : [];
       if (sbData && Array.isArray(sbData)) {
         sbItems = sbData.map(c => ({
           ...c,
@@ -102,7 +102,15 @@ export const ContractsPage: React.FC = () => {
         search: searchTerm || undefined
       });
       if (apiData && Array.isArray(apiData)) {
-        apiItems = apiData;
+        apiItems = apiData.map((contract: any) => ({
+          ...contract,
+          seller_id: contract.seller_id || contract.seller?.id,
+          seller_name: contract.seller_name || contract.seller?.name,
+          seller_city: contract.seller_city || contract.seller?.city,
+          buyer_id: contract.buyer_id || contract.buyer?.id,
+          buyer_name: contract.buyer_name || contract.buyer?.name,
+          buyer_city: contract.buyer_city || contract.buyer?.city,
+        }));
       }
     } catch (e) {
       console.warn('Backend API contract load notice:', e);
@@ -158,6 +166,7 @@ export const ContractsPage: React.FC = () => {
 
     const newContract: any = {
       id: `ctr_${Date.now()}`,
+      owner_company_id: company?.id || 'comp-demo-1',
       contract_number: contractNum,
       title: `${materialName} Supply Agreement`,
       role: myRole,
@@ -180,7 +189,15 @@ export const ContractsPage: React.FC = () => {
       created_at: new Date().toISOString()
     };
 
-    // 1. Store in localStorage
+    let supabaseSaved = false;
+    try {
+      await addContract(newContract);
+      supabaseSaved = true;
+    } catch (sbErr: any) {
+      console.warn('Supabase contract sync notice:', sbErr?.message || 'database error');
+    }
+
+    // Keep a local copy for offline continuity.
     try {
       const existing = JSON.parse(localStorage.getItem('loopmarket_user_contracts') || '[]');
       localStorage.setItem('loopmarket_user_contracts', JSON.stringify([newContract, ...existing]));
@@ -188,35 +205,43 @@ export const ContractsPage: React.FC = () => {
       console.warn('LocalStorage save error:', err);
     }
 
-    // 2. Insert into Supabase DB
+    // Also mirror the record into the backend workflow database.
     try {
-      await addContract(newContract);
-    } catch (sbErr) {
-      console.warn('Supabase contract insert notice:', sbErr);
-    }
-
-    // 3. Insert into Backend API
-    try {
-      await api.createContract({
+      const backendResult = await api.createContract({
         seller_id: newContract.seller_id,
         buyer_id: newContract.buyer_id,
         material_name: materialName,
         quantity_kg: quantityKg,
         unit_price: unitPrice,
-        contract_duration: duration
+        contract_duration: duration,
+        delivery_terms: deliveryTerms,
+        payment_terms: paymentTerms,
+        inspection_terms: inspectionTerms,
+        dispute_terms: 'Automated structured evidence mediation via RELOOP resolution hub within 72 hours.',
       });
+      if (backendResult?.id) {
+        Object.assign(newContract, {
+          ...backendResult,
+          seller_id: backendResult.seller?.id || newContract.seller_id,
+          seller_name: backendResult.seller?.name || newContract.seller_name,
+          buyer_id: backendResult.buyer?.id || newContract.buyer_id,
+          buyer_name: backendResult.buyer?.name || newContract.buyer_name,
+        });
+      }
     } catch (apiErr) {
-      console.warn('Backend API contract insert notice:', apiErr);
+      alert(`Contract could not be saved: ${apiErr instanceof Error ? apiErr.message : 'backend database error'}`);
+      return;
     }
 
     // Update UI immediately
     setContracts(prev => [newContract, ...prev]);
+    window.dispatchEvent(new CustomEvent('contract-created', { detail: newContract }));
     setShowAddModal(false);
 
     // Reset Form
     setPartnerCompanyId('');
     setCustomPartnerName('');
-    alert(`✅ Contract ${contractNum} created and added to active contracts!`);
+    alert(`✅ Contract ${contractNum} created and added to active contracts${supabaseSaved ? ' and Supabase' : ''}!`);
   };
 
   const handleSignContract = async (contractId: string) => {

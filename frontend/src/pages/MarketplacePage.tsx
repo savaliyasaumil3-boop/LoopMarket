@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { 
-  Search, Filter, Sparkles, ShieldCheck, MapPin, 
-  ArrowUpDown, ExternalLink, ArrowRight, Check, X, RotateCcw,
+  Search, Sparkles, ShieldCheck, MapPin, SlidersHorizontal,
+  ArrowUpDown, ExternalLink, ArrowRight, X, RotateCcw,
   Package, Tag, Building2, Clock, CheckCircle2
 } from 'lucide-react';
 import { api } from '../lib/api';
@@ -109,7 +109,7 @@ const DEFAULT_MARKETPLACE_MATERIALS = [
 ];
 
 export const MarketplacePage: React.FC = () => {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const initialSearch = searchParams.get('search') || '';
 
   const [materials, setMaterials] = useState<any[]>([]);
@@ -117,6 +117,7 @@ export const MarketplacePage: React.FC = () => {
   const [nlQuery, setNlQuery] = useState(initialSearch);
   const [isParsingNl, setIsParsingNl] = useState(false);
   const [appliedNlFilters, setAppliedNlFilters] = useState<any | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
 
   // Filters State
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
@@ -133,6 +134,13 @@ export const MarketplacePage: React.FC = () => {
   useEffect(() => {
     fetchMaterials();
   }, [selectedCategory, selectedCondition, selectedCity, maxPrice, sortBy]);
+
+  useEffect(() => {
+    setSelectedCategory(searchParams.get('category') || 'All');
+    setSelectedCondition(searchParams.get('condition') || 'All');
+    setSelectedCity(searchParams.get('city') || 'All');
+    setMaxPrice(Number(searchParams.get('maxPrice') || 100));
+  }, [searchParams]);
 
   useEffect(() => {
     if (initialSearch) {
@@ -276,9 +284,19 @@ export const MarketplacePage: React.FC = () => {
     setSortBy('recommended');
   };
 
-  const categories = ['All', 'Cardboard', 'Plastic', 'Pallets', 'Paper', 'Crates', 'Packaging Film', 'Wood'];
-  const conditions = ['All', 'Excellent', 'Good', 'Reusable', 'Recyclable'];
-  const cities = ['All', 'Ahmedabad', 'Vadodara', 'Surat', 'Rajkot', 'Mumbai', 'Pune', 'Delhi', 'Bengaluru', 'Hyderabad'];
+  const updateMarketplaceFilter = (key: string, value: string) => {
+    const params = new URLSearchParams(searchParams);
+    if (value === 'All' || value === '100') params.delete(key);
+    else params.set(key, value);
+    setSearchParams(params);
+  };
+
+  const clearMarketplaceFilters = () => {
+    const params = new URLSearchParams(searchParams);
+    ['category', 'condition', 'city', 'maxPrice'].forEach((key) => params.delete(key));
+    setSearchParams(params);
+    setShowFilters(false);
+  };
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6 text-xs">
@@ -335,6 +353,47 @@ export const MarketplacePage: React.FC = () => {
             <Sparkles className={`w-3.5 h-3.5 text-emerald-400 ${isParsingNl ? 'animate-spin' : ''}`} />
             {isParsingNl ? 'Parsing...' : 'AI Search'}
           </button>
+          <div className="relative shrink-0">
+            <button
+              type="button"
+              onClick={() => setShowFilters((visible) => !visible)}
+              className="inline-flex h-full items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+              title="Filter marketplace materials"
+            >
+              <SlidersHorizontal className="h-3.5 w-3.5" />
+              Filter
+            </button>
+            {showFilters && (
+              <div className="absolute right-0 top-12 z-40 w-72 space-y-3 rounded-xl border border-slate-200 bg-white p-4 text-xs shadow-xl">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                  <span className="font-bold text-slate-900">Marketplace filters</span>
+                  <button type="button" onClick={clearMarketplaceFilters} className="text-[11px] text-slate-500 hover:text-slate-900">Reset</button>
+                </div>
+                <label className="block space-y-1">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Material type</span>
+                  <select value={searchParams.get('category') || 'All'} onChange={(event) => updateMarketplaceFilter('category', event.target.value)} className="w-full rounded-md border border-slate-200 bg-slate-50 px-2.5 py-2 font-medium text-slate-800 outline-none focus:border-slate-900">
+                    {['All', 'Cardboard', 'Plastic', 'Pallets', 'Paper', 'Crates', 'Packaging Film', 'Wood'].map((value) => <option key={value}>{value}</option>)}
+                  </select>
+                </label>
+                <label className="block space-y-1">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Condition</span>
+                  <select value={searchParams.get('condition') || 'All'} onChange={(event) => updateMarketplaceFilter('condition', event.target.value)} className="w-full rounded-md border border-slate-200 bg-slate-50 px-2.5 py-2 font-medium text-slate-800 outline-none focus:border-slate-900">
+                    {['All', 'Excellent', 'Good', 'Reusable', 'Recyclable'].map((value) => <option key={value}>{value}</option>)}
+                  </select>
+                </label>
+                <label className="block space-y-1">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Location hub</span>
+                  <select value={searchParams.get('city') || 'All'} onChange={(event) => updateMarketplaceFilter('city', event.target.value)} className="w-full rounded-md border border-slate-200 bg-slate-50 px-2.5 py-2 font-medium text-slate-800 outline-none focus:border-slate-900">
+                    {['All', 'Ahmedabad', 'Vadodara', 'Surat', 'Rajkot', 'Mumbai', 'Pune', 'Delhi', 'Bengaluru', 'Hyderabad'].map((value) => <option key={value}>{value}</option>)}
+                  </select>
+                </label>
+                <label className="block space-y-1">
+                  <span className="flex justify-between text-[10px] font-bold uppercase tracking-wider text-slate-500"><span>Max unit price</span><span>₹{searchParams.get('maxPrice') || '100'}/kg</span></span>
+                  <input type="range" min="5" max="100" step="5" value={searchParams.get('maxPrice') || '100'} onChange={(event) => updateMarketplaceFilter('maxPrice', event.target.value)} className="w-full accent-slate-900" />
+                </label>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Applied NLP Filter Chips */}
@@ -371,96 +430,8 @@ export const MarketplacePage: React.FC = () => {
         )}
       </div>
 
-      {/* Main Filter & Marketplace Grid Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
-        {/* Filter Sidebar (3 cols) */}
-        <div className="lg:col-span-3 space-y-5 bg-white border border-slate-200 rounded-xl p-5 h-fit text-xs shadow-sm">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-            <span className="font-bold text-slate-900 flex items-center gap-1.5 uppercase tracking-wider text-[11px] font-mono">
-              <Filter className="w-3.5 h-3.5 text-slate-500" /> Filter Lots
-            </span>
-            <button onClick={resetFilters} className="text-slate-400 hover:text-slate-700 text-[11px]">
-              Reset
-            </button>
-          </div>
-
-          {/* Material Category */}
-          <div className="space-y-1.5">
-            <label className="font-semibold text-slate-700 block text-[11px] uppercase font-mono">Material Type</label>
-            <div className="space-y-1">
-              {categories.map((c) => (
-                <button
-                  key={c}
-                  onClick={() => setSelectedCategory(c)}
-                  className={`w-full text-left px-2.5 py-1.5 rounded text-xs transition flex items-center justify-between ${
-                    selectedCategory === c
-                      ? 'bg-slate-900 text-white font-semibold shadow-xs'
-                      : 'text-slate-600 hover:bg-slate-100'
-                  }`}
-                >
-                  <span>{c}</span>
-                  {selectedCategory === c && <Check className="w-3 h-3 text-emerald-400" />}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Condition */}
-          <div className="space-y-1.5 pt-3 border-t border-slate-100">
-            <label className="font-semibold text-slate-700 block text-[11px] uppercase font-mono">Condition</label>
-            <div className="space-y-1">
-              {conditions.map((cond) => (
-                <button
-                  key={cond}
-                  onClick={() => setSelectedCondition(cond)}
-                  className={`w-full text-left px-2.5 py-1.5 rounded text-xs transition flex items-center justify-between ${
-                    selectedCondition === cond
-                      ? 'bg-slate-900 text-white font-semibold shadow-xs'
-                      : 'text-slate-600 hover:bg-slate-100'
-                  }`}
-                >
-                  <span>{cond}</span>
-                  {selectedCondition === cond && <Check className="w-3 h-3 text-emerald-400" />}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* City / Hub */}
-          <div className="space-y-1.5 pt-3 border-t border-slate-100">
-            <label className="font-semibold text-slate-700 block text-[11px] uppercase font-mono">Location Hub</label>
-            <select
-              value={selectedCity}
-              onChange={(e) => setSelectedCity(e.target.value)}
-              className="b2b-input font-medium"
-            >
-              {cities.map((city) => (
-                <option key={city} value={city}>{city}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Price Range */}
-          <div className="space-y-1.5 pt-3 border-t border-slate-100">
-            <div className="flex justify-between font-mono text-[11px]">
-              <span className="font-semibold text-slate-700 uppercase">Max Unit Price</span>
-              <span className="font-bold text-slate-900">₹{maxPrice}/kg</span>
-            </div>
-            <input
-              type="range"
-              min="5"
-              max="100"
-              step="5"
-              value={maxPrice}
-              onChange={(e) => setMaxPrice(Number(e.target.value))}
-              className="w-full accent-slate-900"
-            />
-          </div>
-        </div>
-
-        {/* Material Cards Grid (9 cols) */}
-        <div className="lg:col-span-9 space-y-4">
+      {/* Marketplace Grid */}
+      <div className="space-y-4">
           
           {/* Sorting & Count Bar */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white border border-slate-200 rounded-lg px-4 py-2.5 text-xs shadow-sm">
@@ -590,8 +561,6 @@ export const MarketplacePage: React.FC = () => {
           )}
 
         </div>
-
-      </div>
 
       {/* Why Match Drawer Modal */}
       <WhyMatchDrawer

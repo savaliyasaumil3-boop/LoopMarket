@@ -13,6 +13,7 @@ import {
 import '@xyflow/react/dist/style.css';
 import { ArrowRight, Building2, CheckCircle2, RefreshCw, ShieldCheck, Sparkles } from 'lucide-react';
 import { api } from '../lib/api';
+import { fetchCompanyContracts } from '../lib/supabaseData';
 import { supabase } from '../lib/supabaseClient';
 
 type CompanyWorkflowNodeData = {
@@ -97,16 +98,168 @@ export const SupplyLoopGraph: React.FC<{ companyId?: string }> = ({ companyId })
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const resolveCompanyId = useCallback(async () => {
+    if (companyId) return companyId;
+
+    try {
+      const companies = await api.getCompanies();
+      const fallbackCompany = (companies || []).find((entry: any) => entry?.name === 'ABC Manufacturing Pvt Ltd') || (companies || [])[0];
+      return fallbackCompany?.id || null;
+    } catch {
+      return null;
+    }
+  }, [companyId]);
+
   const loadGraphData = useCallback(async () => {
-    if (!companyId) return;
+    const activeCompanyId = companyId || await resolveCompanyId();
+    if (!activeCompanyId) {
+      setData({
+        company_id: 'demo-company',
+        company_name: 'ABC Manufacturing Pvt Ltd',
+        nodes: [{
+          id: 'my-company',
+          type: 'central_hub',
+          position: { x: 420, y: 220 },
+          data: {
+            label: 'ABC Manufacturing Pvt Ltd',
+            role: 'My Facility',
+            city: 'Ahmedabad',
+            company_type: 'Manufacturer',
+            trust_score: 96,
+            status: 'active',
+            relationship: 'center',
+          }
+        }],
+        edges: [],
+        summary: {
+          connected_companies: 0,
+          active_suppliers: 0,
+          active_buyers: 0,
+          pending_requests: 0,
+          active_material_flows: 0,
+          in_transit_orders: 0,
+          completed_transactions: 0,
+        },
+      });
+      setSelectedNode({
+        id: 'my-company',
+        data: {
+          label: 'ABC Manufacturing Pvt Ltd',
+          role: 'My Facility',
+          city: 'Ahmedabad',
+          company_type: 'Manufacturer',
+          trust_score: 96,
+          status: 'active',
+          relationship: 'center',
+        },
+      });
+      setLoading(false);
+      return;
+    }
 
     setLoading(true);
     setError(null);
     try {
-      const res = await api.getCircularLoop(companyId);
-      setData(res);
-      if (res?.nodes?.length) {
-        const fallbackNode = res.nodes.find((node: any) => node.id === 'my-company') || res.nodes[0];
+      const [res, companies, supabaseContractRows, backendContractRows] = await Promise.all([
+        api.getCircularLoop(activeCompanyId),
+        api.getCompanies().catch(() => []),
+        fetchCompanyContracts(activeCompanyId).catch(() => []),
+        api.getContracts().catch(() => [])
+      ]);
+
+      const normalizedBackendContracts = (backendContractRows || []).map((contract: any) => ({
+        ...contract,
+        seller_id: contract.seller_id || contract.seller?.id,
+        seller_name: contract.seller_name || contract.seller?.name,
+        seller_city: contract.seller_city || contract.seller?.city,
+        buyer_id: contract.buyer_id || contract.buyer?.id,
+        buyer_name: contract.buyer_name || contract.buyer?.name,
+        buyer_city: contract.buyer_city || contract.buyer?.city,
+      }));
+      const contractRows = [...normalizedBackendContracts, ...(supabaseContractRows || [])];
+      const uniqueContracts = Array.from(new Map(contractRows.map((contract: any) => [String(contract.id || contract.contract_number), contract])).values());
+      const contractMatches = uniqueContracts.filter((contract: any) => {
+        const sellerId = contract?.seller_id;
+        const buyerId = contract?.buyer_id;
+        return String(sellerId) === String(activeCompanyId) || String(buyerId) === String(activeCompanyId);
+      });
+
+      const companyMap = new Map((companies || []).map((company: any) => [company.id, company]));
+      const centerNode = (res?.nodes || []).find((node: any) => node.id === 'my-company') || {
+        id: 'my-company',
+        type: 'central_hub',
+        position: { x: 420, y: 220 },
+        data: { label: res?.company_name || 'My Company', role: 'My Facility', relationship: 'center' },
+      };
+      const mergedNodes = [centerNode];
+      const mergedEdges: any[] = [];
+
+      for (const contract of contractMatches) {
+        const isCurrentCompanySeller = String(contract.seller_id) === String(activeCompanyId);
+        const partnerId = isCurrentCompanySeller ? contract.buyer_id : contract.seller_id;
+        if (!partnerId) continue;
+
+        const partnerCompany = (companyMap.get(partnerId) || {
+          id: partnerId,
+          name: isCurrentCompanySeller ? contract.buyer_name : contract.seller_name,
+          city: isCurrentCompanySeller ? contract.buyer_city : contract.seller_city,
+          company_type: 'Business Partner',
+          trust_score: 90,
+        }) as Record<string, any>;
+
+        const partnerRole = isCurrentCompanySeller ? 'Buyer' : 'Seller';
+        const partnerNodeId = `company-${partnerId}-${partnerRole.toLowerCase()}`;
+        const partnerExists = mergedNodes.some((node: any) => node.id === partnerNodeId);
+        if (!partnerExists) {
+          mergedNodes.push({
+            id: partnerNodeId,
+            type: isCurrentCompanySeller ? 'buyerNode' : 'supplierNode',
+            position: { x: 200, y: 160 },
+            data: {
+              label: String(partnerCompany.name ?? 'Partner Company'),
+              role: partnerRole,
+              workflowSide: isCurrentCompanySeller ? 'left' : 'right',
+              city: String(partnerCompany.city ?? 'N/A'),
+              company_type: String(partnerCompany.company_type ?? 'Business Partner'),
+              trust_score: Number(partnerCompany.trust_score ?? 90),
+              status: 'active',
+              relationship: 'contract-linked',
+            },
+          });
+        }
+
+        const edgeId = `contract-edge-${contract.id}`;
+        const edgeExists = mergedEdges.some((edge: any) => edge.id === edgeId);
+        if (!edgeExists) {
+          mergedEdges.push({
+            id: edgeId,
+            source: isCurrentCompanySeller ? 'my-company' : partnerNodeId,
+            target: isCurrentCompanySeller ? partnerNodeId : 'my-company',
+            label: `CONTRACT • ${Number(contract.quantity_kg || 0).toLocaleString()} kg`,
+            type: 'smoothstep',
+            animated: true,
+            style: { stroke: '#22c55e', strokeWidth: 2.5 },
+            markerEnd: { type: MarkerType.ArrowClosed, color: '#22c55e' },
+            labelStyle: { fill: '#1f2937', fontSize: 11, fontWeight: 700 },
+          });
+        }
+      }
+
+      const finalData = {
+        ...(res || {}),
+        nodes: mergedNodes,
+        edges: mergedEdges,
+        summary: {
+          ...(res?.summary || {}),
+          connected_companies: Math.max(mergedNodes.filter((node: any) => node.id !== 'my-company').length, 0),
+          active_suppliers: mergedNodes.filter((node: any) => String(node.data?.role || '').toLowerCase() === 'seller').length,
+          active_buyers: mergedNodes.filter((node: any) => String(node.data?.role || '').toLowerCase() === 'buyer').length,
+        },
+      };
+
+      setData(finalData);
+      if (finalData?.nodes?.length) {
+        const fallbackNode = finalData.nodes.find((node: any) => node.id === 'my-company') || finalData.nodes[0];
         setSelectedNode(fallbackNode);
       }
     } catch (requestError) {
@@ -116,14 +269,27 @@ export const SupplyLoopGraph: React.FC<{ companyId?: string }> = ({ companyId })
     } finally {
       setLoading(false);
     }
-  }, [companyId]);
+  }, [companyId, resolveCompanyId]);
 
   useEffect(() => {
     loadGraphData();
   }, [loadGraphData]);
 
   useEffect(() => {
-    if (!companyId || !supabase) return;
+    if (!companyId) return;
+
+    const handleContractCreated = (event: Event) => {
+      const contract = (event as CustomEvent).detail;
+      if (!contract || contract.seller_id === companyId || contract.buyer_id === companyId) {
+        loadGraphData();
+      }
+    };
+
+    window.addEventListener('contract-created', handleContractCreated);
+
+    if (!supabase) {
+      return () => window.removeEventListener('contract-created', handleContractCreated);
+    }
 
     const channel = supabase.channel(`workflow-${companyId}`);
     const refresh = () => loadGraphData();
@@ -140,9 +306,22 @@ export const SupplyLoopGraph: React.FC<{ companyId?: string }> = ({ companyId })
       refresh
     );
 
+    channel.on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'contracts', filter: `seller_id=eq.${companyId}` },
+      refresh
+    );
+
+    channel.on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'contracts', filter: `buyer_id=eq.${companyId}` },
+      refresh
+    );
+
     channel.subscribe();
 
     return () => {
+      window.removeEventListener('contract-created', handleContractCreated);
       channel.unsubscribe();
     };
   }, [companyId, loadGraphData]);
@@ -174,12 +353,13 @@ export const SupplyLoopGraph: React.FC<{ companyId?: string }> = ({ companyId })
           trust_score: node.data?.trust_score ?? node.trust_score ?? 90,
           status: (node.data?.status || node.status || 'active').toLowerCase(),
           relationship: node.data?.relationship || node.flow_type || 'connected',
+          workflowSide: node.data?.workflowSide || node.data?.workflow_side,
         },
       };
     });
 
-    const suppliers = rawNodes.filter((node) => node.type === 'supplierNode');
-    const buyers = rawNodes.filter((node) => node.type === 'buyerNode');
+    const sellers = rawNodes.filter((node) => node.data.workflowSide === 'right' || node.data.role === 'Seller');
+    const buyers = rawNodes.filter((node) => node.data.workflowSide === 'left' || node.data.role === 'Buyer');
     const recyclers = rawNodes.filter((node) => node.type === 'recyclerNode' || node.type === 'logisticsNode');
 
     return rawNodes.map((node) => {
@@ -187,12 +367,12 @@ export const SupplyLoopGraph: React.FC<{ companyId?: string }> = ({ companyId })
         return { ...node, position: { x: 450, y: 240 } };
       }
 
-      if (node.type === 'supplierNode') {
-        return { ...node, position: { x: 40, y: 70 + suppliers.indexOf(node) * 150 } };
+      if (node.data.workflowSide === 'right' || node.data.role === 'Seller') {
+        return { ...node, position: { x: 820, y: 70 + sellers.indexOf(node) * 150 } };
       }
 
-      if (node.type === 'buyerNode') {
-        return { ...node, position: { x: 820, y: 70 + buyers.indexOf(node) * 150 } };
+      if (node.data.workflowSide === 'left' || node.data.role === 'Buyer') {
+        return { ...node, position: { x: 40, y: 70 + buyers.indexOf(node) * 150 } };
       }
 
       return {
@@ -205,8 +385,8 @@ export const SupplyLoopGraph: React.FC<{ companyId?: string }> = ({ companyId })
   const graphHeight = Math.max(
     560,
     Math.max(
-      nodes.filter((node) => node.type === 'supplierNode').length,
-      nodes.filter((node) => node.type === 'buyerNode').length,
+      nodes.filter((node) => node.data.workflowSide === 'right' || node.data.role === 'Seller').length,
+      nodes.filter((node) => node.data.workflowSide === 'left' || node.data.role === 'Buyer').length,
     ) * 150 + 120,
   );
 
@@ -291,11 +471,11 @@ export const SupplyLoopGraph: React.FC<{ companyId?: string }> = ({ companyId })
             <div className="flex h-full items-center justify-center p-6 text-center text-sm text-slate-500">{error}</div>
           ) : (
             <>
-              <div className="pointer-events-none absolute left-4 top-3 z-10 rounded-md bg-emerald-100 px-2 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-emerald-800">
-                Sellers
-              </div>
-              <div className="pointer-events-none absolute right-4 top-3 z-10 rounded-md bg-blue-100 px-2 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-blue-800">
+              <div className="pointer-events-none absolute left-4 top-3 z-10 rounded-md bg-blue-100 px-2 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-blue-800">
                 Buyers
+              </div>
+              <div className="pointer-events-none absolute right-4 top-3 z-10 rounded-md bg-emerald-100 px-2 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-emerald-800">
+                Sellers
               </div>
               <ReactFlow
                 nodes={nodes}
