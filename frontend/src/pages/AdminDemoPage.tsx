@@ -67,7 +67,7 @@ export const AdminDemoPage: React.FC = () => {
               JUDGE DEMO CONSOLE
             </span>
           </div>
-          <h1 className="text-2xl font-black text-slate-950 mt-1">RELOOP Control & Demonstration Hub</h1>
+          <h1 className="text-2xl font-black text-slate-950 mt-1">LoopMarket Control & Demonstration Hub</h1>
           <p className="text-slate-500 mt-0.5">
             1-Click automated verification and end-to-end circular transaction execution for hackathon judges.
           </p>

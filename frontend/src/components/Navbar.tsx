@@ -40,31 +40,41 @@ export const Navbar: React.FC<{
   };
 
   return (
-    <header className="h-16 bg-white border-b border-slate-200 px-4 sm:px-6 flex items-center justify-between sticky top-0 z-30 font-sans">
+    <header className="h-16 bg-white border-b border-slate-200 px-3 sm:px-6 flex items-center justify-between sticky top-0 z-30 font-sans">
       {/* Search Bar & Mobile Menu Toggle */}
-      <div className="flex items-center gap-2 sm:gap-3 flex-1 max-w-xs sm:max-w-md mr-2">
+      <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0 mr-2">
         {onToggleSidebar && (
           <button
             type="button"
             onClick={onToggleSidebar}
-            className="md:hidden p-1.5 -ml-1 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition shrink-0 cursor-pointer"
-            title="Open Navigation Drawer"
+            className="md:hidden p-2 text-slate-700 hover:text-slate-950 hover:bg-slate-100 rounded-lg transition shrink-0 cursor-pointer"
+            title="Open Navigation Menu"
+            aria-label="Open Navigation Menu"
           >
             <Menu className="w-5 h-5" />
           </button>
         )}
-        <form onSubmit={handleSearch} className="relative w-full">
 
-        <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-        <input
-          type="text"
-          value={searchVal}
-          onChange={(e) => setSearchVal(e.target.value)}
-          placeholder="Search materials, grades, or natural language query..."
-          className="w-full pl-9 pr-4 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition"
-        />
-      </form>
-    </div>
+        {/* Mobile Brand Logo */}
+        <Link to="/dashboard" className="md:hidden shrink-0 flex items-center mr-1">
+          <img 
+            src="/loopmarket-logo.svg" 
+            alt="LoopMarket" 
+            className="h-6 w-auto object-contain max-w-[110px]" 
+          />
+        </Link>
+
+        <form onSubmit={handleSearch} className="relative w-full max-w-xs sm:max-w-md">
+          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <input
+            type="text"
+            value={searchVal}
+            onChange={(e) => setSearchVal(e.target.value)}
+            placeholder="Search materials, grades..."
+            className="w-full pl-9 pr-3 sm:pr-4 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition"
+          />
+        </form>
+      </div>
 
       {/* Right Controls */}
       <div className="flex items-center gap-2.5 sm:gap-4">
@@ -78,7 +88,7 @@ export const Navbar: React.FC<{
           >
             <option value="abc@reloop.in">ABC Mfg (Seller - FMCG)</option>
             <option value="buyer@greenpack.com">GreenPack (Buyer - Packaging)</option>
-            <option value="dispatch@relooplogistics.in">RELOOP Logistics (Fleet)</option>
+            <option value="dispatch@relooplogistics.in">LoopMarket Logistics (Fleet)</option>
             <option value="contact@gujaratpolymers.in">Gujarat Polymers (Recycler)</option>
           </select>
         </div>

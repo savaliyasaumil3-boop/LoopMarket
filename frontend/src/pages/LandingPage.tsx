@@ -15,14 +15,15 @@ export const LandingPage: React.FC = () => {
       {/* Top Banner Navigation */}
       <nav className="border-b border-slate-200 bg-white/90 backdrop-blur-md sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-slate-950 text-white flex items-center justify-center font-black text-base shadow-sm">
-              R
-            </div>
-            <div>
-              <span className="font-bold text-base tracking-tight text-slate-900 block leading-tight">RELOOP</span>
-              <span className="text-[10px] text-slate-400 font-mono">CIRCULAR CARBON ECOSYSTEM</span>
-            </div>
+          <Link to="/" className="flex items-center gap-3">
+            <img 
+              src="/loopmarket-logo.svg" 
+              alt="LoopMarket" 
+              className="h-7 w-auto object-contain" 
+            />
+            <span className="hidden sm:inline-block text-[10px] text-slate-400 font-mono tracking-wider border-l border-slate-200 pl-3">
+              CIRCULAR PACKAGING EXCHANGE
+            </span>
           </Link>
 
           <div className="hidden md:flex items-center gap-8 text-xs font-semibold text-slate-600">
@@ -91,7 +92,7 @@ export const LandingPage: React.FC = () => {
         </h1>
 
         <p className="mt-6 text-base sm:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed font-normal">
-          RELOOP connects manufacturers, retailers, packaging recyclers, and logistics providers through AI-powered matching, optimized freight, verified trust, and measurable circular carbon impact.
+          LoopMarket connects manufacturers, retailers, packaging recyclers, and logistics providers through AI-powered matching, optimized freight, verified trust, and measurable circular carbon impact.
         </p>
 
         {/* CTAs */}
@@ -225,7 +226,7 @@ export const LandingPage: React.FC = () => {
       {/* Footer */}
       <footer className="border-t border-slate-200 py-10 px-6 max-w-7xl mx-auto text-xs text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div>
-          <span className="font-bold text-slate-900">RELOOP</span> — AI-Powered Circular Packaging & Materials Exchange
+          <span className="font-bold text-slate-900">LoopMarket</span> — AI-Powered Circular Packaging & Materials Exchange
         </div>
         <div className="flex gap-6 font-medium">
           <Link to="/marketplace" className="hover:text-slate-900">Marketplace</Link>

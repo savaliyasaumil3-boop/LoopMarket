@@ -57,21 +57,22 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col justify-between selection:bg-emerald-500 selection:text-slate-950 font-sans">
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col justify-between selection:bg-slate-900 selection:text-white font-sans">
       {/* Top Header */}
-      <header className="border-b border-slate-800 bg-slate-950/70 backdrop-blur-md px-6 py-4 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-emerald-500 text-slate-950 flex items-center justify-center font-black text-base shadow-sm">
-            R
-          </div>
-          <div>
-            <span className="font-bold text-base tracking-tight text-white block leading-tight">RELOOP</span>
-            <span className="text-[10px] text-emerald-400 font-mono">B2B CIRCULAR EXCHANGE</span>
-          </div>
+      <header className="border-b border-slate-200 bg-white/95 backdrop-blur-md px-6 py-3.5 flex items-center justify-between sticky top-0 z-20">
+        <Link to="/" className="flex items-center gap-3">
+          <img 
+            src="/loopmarket-logo.svg" 
+            alt="LoopMarket" 
+            className="h-7 w-auto object-contain" 
+          />
+          <span className="hidden sm:inline-block text-[10px] text-slate-400 font-mono tracking-wider border-l border-slate-200 pl-3">
+            B2B CIRCULAR EXCHANGE
+          </span>
         </Link>
         <Link 
           to="/" 
-          className="text-xs text-slate-400 hover:text-white flex items-center gap-1.5 transition font-medium"
+          className="text-xs text-slate-600 hover:text-slate-950 flex items-center gap-1.5 transition font-medium"
         >
           <ArrowLeft className="w-3.5 h-3.5" /> Back to Homepage
         </Link>
@@ -79,41 +80,56 @@ export const LoginPage: React.FC = () => {
 
       {/* Main Container */}
       <main className="flex-1 flex items-center justify-center p-4 sm:p-6 my-6">
-        <div className="bg-slate-950 border border-slate-800 rounded-2xl max-w-xl w-full p-6 sm:p-8 shadow-2xl space-y-6">
+        <div className="bg-white border border-slate-200 rounded-2xl max-w-xl w-full p-6 sm:p-8 shadow-xl shadow-slate-200/50 space-y-6">
           
           {/* Brand & Badge */}
-          <div className="text-center space-y-2">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-950/60 border border-emerald-700/50 rounded-full text-[11px] font-medium text-emerald-400">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <div className="text-center space-y-3">
+            <div className="flex justify-center">
+              <img 
+                src="/loopmarket-logo.svg" 
+                alt="LoopMarket" 
+                className="h-8 w-auto object-contain" 
+              />
+            </div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 border border-slate-200 rounded-full text-[11px] font-medium text-slate-800">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
               <span>Enterprise Single Sign-On & Verification</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">Sign In to RELOOP</h1>
-            <p className="text-slate-400 text-xs max-w-md mx-auto">
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">Sign In to LoopMarket</h1>
+            <p className="text-slate-500 text-xs max-w-md mx-auto leading-relaxed">
               Access the secondary packaging marketplace, AI matching engine, verified digital passports, and carbon ledger.
             </p>
           </div>
 
           {/* Quick Tab Switcher */}
-          <div className="grid grid-cols-2 p-1 bg-slate-900 border border-slate-800 rounded-xl text-xs font-semibold">
+          <div className="grid grid-cols-2 p-1 bg-slate-100 border border-slate-200 rounded-xl text-xs font-semibold">
             <button
               type="button"
               onClick={() => setActiveTab('form')}
-              className={`py-2 rounded-lg transition cursor-pointer ${activeTab === 'form' ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-400 hover:text-white'}`}
+              className={`py-2 rounded-lg transition cursor-pointer ${
+                activeTab === 'form' 
+                  ? 'bg-white text-slate-950 shadow-sm font-bold' 
+                  : 'text-slate-500 hover:text-slate-900'
+              }`}
             >
               Credentials Login
             </button>
             <button
               type="button"
               onClick={() => setActiveTab('demo')}
-              className={`py-2 rounded-lg transition flex items-center justify-center gap-1.5 cursor-pointer ${activeTab === 'demo' ? 'bg-emerald-600 text-white shadow-sm' : 'text-emerald-400 hover:text-emerald-300'}`}
+              className={`py-2 rounded-lg transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                activeTab === 'demo' 
+                  ? 'bg-slate-950 text-white shadow-sm font-bold' 
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
             >
-              <Sparkles className="w-3.5 h-3.5" /> 1-Click Demo Personas
+              <Sparkles className="w-3.5 h-3.5 text-emerald-500" /> 1-Click Demo Personas
             </button>
           </div>
 
           {error && (
-            <div className="p-3.5 bg-rose-950/60 border border-rose-800 text-rose-300 rounded-xl text-xs flex items-start gap-2.5">
-              <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+            <div className="p-3.5 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-xs flex items-start gap-2.5">
+              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
               <div className="flex-1">
                 <span className="font-semibold block">Authentication Notice</span>
                 <span>{error}</span>
@@ -125,45 +141,45 @@ export const LoginPage: React.FC = () => {
             /* Login Form */
             <form onSubmit={handleSubmit} className="space-y-4 text-xs">
               <div className="space-y-1.5">
-                <label className="font-semibold text-slate-300 block">Work Email</label>
+                <label className="font-semibold text-slate-700 block">Work Email</label>
                 <div className="relative">
-                  <Mail className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="name@company.com"
                     required
-                    className="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent focus:bg-white transition"
                   />
                 </div>
               </div>
 
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <label className="font-semibold text-slate-300">Password</label>
+                  <label className="font-semibold text-slate-700">Password</label>
                   <button 
                     type="button" 
                     onClick={() => alert("For Hackathon Demo: All verified enterprise accounts use password: 'password123'. You can also use the 1-Click Demo tab!")}
-                    className="text-[11px] text-emerald-400 hover:underline cursor-pointer"
+                    className="text-[11px] text-slate-500 hover:text-slate-900 hover:underline cursor-pointer"
                   >
                     Forgot password?
                   </button>
                 </div>
                 <div className="relative">
-                  <Lock className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
                     required
-                    className="w-full pl-10 pr-10 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+                    className="w-full pl-10 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent focus:bg-white transition"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition cursor-pointer"
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition cursor-pointer"
                     title={showPassword ? "Hide password" : "Show password"}
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -171,13 +187,13 @@ export const LoginPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between text-slate-400 text-xs pt-1">
-                <label className="flex items-center gap-2 cursor-pointer">
+              <div className="flex items-center justify-between text-slate-600 text-xs pt-1">
+                <label className="flex items-center gap-2 cursor-pointer select-none">
                   <input
                     type="checkbox"
                     checked={rememberMe}
                     onChange={(e) => setRememberMe(e.target.checked)}
-                    className="rounded border-slate-700 bg-slate-900 text-emerald-500 focus:ring-0 cursor-pointer"
+                    className="rounded border-slate-300 text-slate-900 focus:ring-0 cursor-pointer"
                   />
                   <span>Keep me signed in for 7 days</span>
                 </label>
@@ -186,7 +202,7 @@ export const LoginPage: React.FC = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl font-bold transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/10 cursor-pointer disabled:opacity-50"
+                className="w-full py-3 bg-slate-950 hover:bg-slate-800 text-white rounded-xl font-bold transition flex items-center justify-center gap-2 shadow-sm cursor-pointer disabled:opacity-50"
               >
                 {loading ? (
                   <>
@@ -203,7 +219,7 @@ export const LoginPage: React.FC = () => {
             /* 1-Click Demo Accounts Selection */
             <div className="space-y-3">
               <div className="text-center pb-1">
-                <span className="text-[11px] font-mono uppercase text-slate-400 block">
+                <span className="text-[11px] font-mono uppercase text-slate-500 font-semibold block">
                   Instant Hackathon Evaluation Personas
                 </span>
                 <span className="text-xs text-slate-500">
@@ -217,26 +233,26 @@ export const LoginPage: React.FC = () => {
                     key={acc.email}
                     onClick={() => handleQuickDemoLogin(acc.email)}
                     disabled={loading}
-                    className="p-3 bg-slate-900 hover:bg-slate-850 hover:border-emerald-500/50 border border-slate-800 rounded-xl text-left flex justify-between items-center transition group cursor-pointer"
+                    className="p-3 bg-slate-50 hover:bg-white hover:border-slate-400 border border-slate-200 rounded-xl text-left flex justify-between items-center transition group cursor-pointer shadow-xs"
                   >
                     <div className="space-y-0.5">
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-white group-hover:text-emerald-300 transition text-xs">
+                        <span className="font-bold text-slate-900 group-hover:text-black transition text-xs">
                           {acc.name}
                         </span>
-                        <span className="text-[10px] bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded font-mono border border-slate-700">
+                        <span className="text-[10px] bg-white text-slate-700 px-1.5 py-0.5 rounded font-mono border border-slate-200 font-medium">
                           {acc.tag}
                         </span>
                       </div>
-                      <div className="text-[11px] text-slate-400 flex items-center gap-2">
+                      <div className="text-[11px] text-slate-500 flex items-center gap-2">
                         <span>{acc.city}, IN</span>
                         <span>•</span>
                         <span>{acc.role}</span>
                         <span>•</span>
-                        <span className="font-mono text-slate-500">{acc.email}</span>
+                        <span className="font-mono text-slate-400">{acc.email}</span>
                       </div>
                     </div>
-                    <span className="text-xs bg-emerald-500 group-hover:bg-emerald-400 text-slate-950 font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 transition shadow-sm shrink-0">
+                    <span className="text-xs bg-slate-950 group-hover:bg-slate-800 text-white font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 transition shadow-xs shrink-0">
                       Sign In <ArrowRight className="w-3.5 h-3.5" />
                     </span>
                   </button>
@@ -246,11 +262,11 @@ export const LoginPage: React.FC = () => {
           )}
 
           {/* Onboarding Link Footer */}
-          <div className="pt-4 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-            <span className="text-slate-400">New facility or enterprise?</span>
+          <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+            <span className="text-slate-500">New facility or enterprise?</span>
             <Link
               to="/signup"
-              className="text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1 transition underline decoration-emerald-500/40 hover:decoration-emerald-400"
+              className="text-slate-950 hover:text-black font-bold flex items-center gap-1 transition underline decoration-slate-300 hover:decoration-slate-950"
             >
               Register & Onboard Facility →
             </Link>
@@ -260,8 +276,8 @@ export const LoginPage: React.FC = () => {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-slate-800 py-4 px-6 text-center text-[11px] text-slate-500 font-mono">
-        RELOOP Circular Carbon Platform • Protected by End-to-End Enterprise Cryptography
+      <footer className="border-t border-slate-200 py-4 px-6 text-center text-[11px] text-slate-400 font-mono bg-white">
+        LoopMarket B2B Circular Platform • Protected by End-to-End Enterprise Cryptography
       </footer>
     </div>
   );
@@ -327,7 +343,7 @@ export const SignupPage: React.FC = () => {
     }
 
     if (!agreeTerms) {
-      setError('Please agree to the RELOOP Enterprise Circular Exchange Terms.');
+      setError('Please agree to the LoopMarket Enterprise Circular Exchange Terms.');
       return;
     }
 
@@ -355,57 +371,58 @@ export const SignupPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col justify-between selection:bg-emerald-500 selection:text-slate-950 font-sans">
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col justify-between selection:bg-slate-900 selection:text-white font-sans">
       {/* Top Header */}
-      <header className="border-b border-slate-800 bg-slate-950/70 backdrop-blur-md px-6 py-4 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-emerald-500 text-slate-950 flex items-center justify-center font-black text-base shadow-sm">
-            R
-          </div>
-          <div>
-            <span className="font-bold text-base tracking-tight text-white block leading-tight">RELOOP</span>
-            <span className="text-[10px] text-emerald-400 font-mono">FACILITY ONBOARDING</span>
-          </div>
+      <header className="border-b border-slate-200 bg-white/95 backdrop-blur-md px-6 py-3.5 flex items-center justify-between sticky top-0 z-20">
+        <Link to="/" className="flex items-center gap-3">
+          <img 
+            src="/loopmarket-logo.svg" 
+            alt="LoopMarket" 
+            className="h-7 w-auto object-contain" 
+          />
+          <span className="hidden sm:inline-block text-[10px] text-slate-400 font-mono tracking-wider border-l border-slate-200 pl-3">
+            FACILITY ONBOARDING
+          </span>
         </Link>
         <Link 
           to="/login" 
-          className="text-xs text-slate-400 hover:text-white flex items-center gap-1.5 transition font-medium"
+          className="text-xs text-slate-600 hover:text-slate-950 flex items-center gap-1.5 transition font-medium"
         >
-          Already have an account? <span className="text-emerald-400 font-bold underline">Sign In</span>
+          Already have an account? <span className="text-slate-950 font-bold underline">Sign In</span>
         </Link>
       </header>
 
       {/* Main Container */}
       <main className="flex-1 flex items-center justify-center p-4 sm:p-6 my-6">
-        <div className="bg-slate-950 border border-slate-800 rounded-2xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl space-y-6">
+        <div className="bg-white border border-slate-200 rounded-2xl max-w-2xl w-full p-6 sm:p-8 shadow-xl shadow-slate-200/50 space-y-6">
           
           {/* Header & Autofill CTA */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
             <div>
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-950/60 border border-emerald-700/50 rounded-full text-[11px] font-medium text-emerald-400 mb-2">
-                <Sparkles className="w-3.5 h-3.5" />
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 border border-slate-200 rounded-full text-[11px] font-medium text-slate-800 mb-2">
+                <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
                 <span>Instant Enterprise Verification</span>
               </div>
-              <h1 className="text-2xl font-black text-white tracking-tight">Onboard Your Facility</h1>
-              <p className="text-slate-400 text-xs mt-1">
-                Join India's B2B Circular Carbon Packaging & Secondary Materials Exchange.
+              <h1 className="text-2xl font-black text-slate-950 tracking-tight">Onboard Your Facility</h1>
+              <p className="text-slate-500 text-xs mt-1">
+                Join India's B2B Circular Carbon Packaging & Secondary Materials Exchange on LoopMarket.
               </p>
             </div>
 
             <button
               type="button"
               onClick={fillRandomDemoEnterprise}
-              className="px-3 py-2 bg-slate-900 hover:bg-slate-800 border border-emerald-500/40 hover:border-emerald-400 text-emerald-300 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition shrink-0 cursor-pointer"
+              className="px-3 py-2 bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-800 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition shrink-0 cursor-pointer shadow-xs"
               title="Auto-fill realistic industrial enterprise data for fast testing"
             >
-              <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+              <Sparkles className="w-3.5 h-3.5 text-slate-700" />
               <span>⚡ Fast Demo Autofill</span>
             </button>
           </div>
 
           {error && (
-            <div className="p-3.5 bg-rose-950/60 border border-rose-800 text-rose-300 rounded-xl text-xs flex items-start gap-2.5">
-              <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+            <div className="p-3.5 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-xs flex items-start gap-2.5">
+              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
               <div className="flex-1">
                 <span className="font-semibold block">Registration Error</span>
                 <span>{error}</span>
@@ -417,32 +434,32 @@ export const SignupPage: React.FC = () => {
             
             {/* Section 1: Enterprise Profile */}
             <div className="space-y-3">
-              <span className="text-[11px] font-mono uppercase text-emerald-400 tracking-wider font-bold block">
+              <span className="text-[11px] font-mono uppercase text-slate-900 tracking-wider font-bold block">
                 1. Enterprise & Facility Profile
               </span>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div className="space-y-1 sm:col-span-2">
-                  <label className="font-semibold text-slate-300">Company / Facility Name *</label>
+                  <label className="font-semibold text-slate-700">Company / Facility Name *</label>
                   <div className="relative">
-                    <Building2 className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <Building2 className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                     <input
                       type="text"
                       value={companyName}
                       onChange={(e) => setCompanyName(e.target.value)}
                       required
                       placeholder="e.g. Apex Packaging Solutions Pvt Ltd"
-                      className="w-full pl-10 pr-4 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition"
+                      className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-semibold text-slate-300">Company Operational Type *</label>
+                  <label className="font-semibold text-slate-700">Company Operational Type *</label>
                   <select
                     value={companyType}
                     onChange={(e) => setCompanyType(e.target.value)}
-                    className="w-full px-3.5 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 transition cursor-pointer"
+                    className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition cursor-pointer"
                   >
                     <option value="Manufacturer">Manufacturer / Production Plant</option>
                     <option value="Packaging Supplier">Packaging Supplier / Converter</option>
@@ -453,11 +470,11 @@ export const SignupPage: React.FC = () => {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-semibold text-slate-300">Industry Sector *</label>
+                  <label className="font-semibold text-slate-700">Industry Sector *</label>
                   <select
                     value={industry}
                     onChange={(e) => setIndustry(e.target.value)}
-                    className="w-full px-3.5 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 transition cursor-pointer"
+                    className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition cursor-pointer"
                   >
                     <option value="FMCG">FMCG & Fast-Moving Consumer Goods</option>
                     <option value="Manufacturing">Heavy & Precision Manufacturing</option>
@@ -470,13 +487,13 @@ export const SignupPage: React.FC = () => {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-semibold text-slate-300">Primary Logistics Hub City *</label>
+                  <label className="font-semibold text-slate-700">Primary Logistics Hub City *</label>
                   <div className="relative">
-                    <MapPin className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <MapPin className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                     <select
                       value={city}
                       onChange={(e) => setCity(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 transition cursor-pointer"
+                      className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition cursor-pointer"
                     >
                       <option value="Ahmedabad">Ahmedabad (Gujarat Hub)</option>
                       <option value="Vadodara">Vadodara (Industrial Zone)</option>
@@ -492,11 +509,11 @@ export const SignupPage: React.FC = () => {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-semibold text-slate-300">Facility Size</label>
+                  <label className="font-semibold text-slate-700">Facility Size</label>
                   <select
                     value={companySize}
                     onChange={(e) => setCompanySize(e.target.value)}
-                    className="w-full px-3.5 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 transition cursor-pointer"
+                    className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition cursor-pointer"
                   >
                     <option value="Small (1-50)">Small Facility (1-50 workers)</option>
                     <option value="Medium (50-250)">Medium Plant (50-250 workers)</option>
@@ -508,73 +525,73 @@ export const SignupPage: React.FC = () => {
             </div>
 
             {/* Section 2: Contact Person & Credentials */}
-            <div className="space-y-3 pt-2 border-t border-slate-800">
-              <span className="text-[11px] font-mono uppercase text-emerald-400 tracking-wider font-bold block">
+            <div className="space-y-3 pt-2 border-t border-slate-100">
+              <span className="text-[11px] font-mono uppercase text-slate-900 tracking-wider font-bold block">
                 2. Authorized Representative & Credentials
               </span>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div className="space-y-1 sm:col-span-2">
-                  <label className="font-semibold text-slate-300">Authorized Contact Person *</label>
+                  <label className="font-semibold text-slate-700">Authorized Contact Person *</label>
                   <div className="relative">
-                    <User className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                     <input
                       type="text"
                       value={contactPerson}
                       onChange={(e) => setContactPerson(e.target.value)}
                       required
                       placeholder="e.g. Vikram Patel (Head of Procurement)"
-                      className="w-full pl-10 pr-4 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition"
+                      className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-semibold text-slate-300">Official Work Email *</label>
+                  <label className="font-semibold text-slate-700">Official Work Email *</label>
                   <div className="relative">
-                    <Mail className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                     <input
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
                       placeholder="contact@enterprise.com"
-                      className="w-full pl-10 pr-4 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition"
+                      className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-semibold text-slate-300">Facility Phone Number *</label>
+                  <label className="font-semibold text-slate-700">Facility Phone Number *</label>
                   <div className="relative">
-                    <Phone className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                     <input
                       type="tel"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       required
                       placeholder="+91 9825123456"
-                      className="w-full pl-10 pr-4 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition"
+                      className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-semibold text-slate-300">Account Password *</label>
+                  <label className="font-semibold text-slate-700">Account Password *</label>
                   <div className="relative">
-                    <Lock className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                     <input
                       type={showPassword ? 'text' : 'password'}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
                       placeholder="Min 6 characters"
-                      className="w-full pl-10 pr-10 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition"
+                      className="w-full pl-10 pr-10 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition cursor-pointer"
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition cursor-pointer"
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -582,16 +599,16 @@ export const SignupPage: React.FC = () => {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-semibold text-slate-300">Confirm Password *</label>
+                  <label className="font-semibold text-slate-700">Confirm Password *</label>
                   <div className="relative">
-                    <Lock className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                     <input
                       type={showPassword ? 'text' : 'password'}
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       required
                       placeholder="Re-enter password"
-                      className="w-full pl-10 pr-4 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition"
+                      className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition"
                     />
                   </div>
                 </div>
@@ -600,15 +617,15 @@ export const SignupPage: React.FC = () => {
 
             {/* Terms checkbox */}
             <div className="pt-2">
-              <label className="flex items-start gap-2 text-slate-400 text-xs cursor-pointer">
+              <label className="flex items-start gap-2 text-slate-600 text-xs cursor-pointer select-none">
                 <input
                   type="checkbox"
                   checked={agreeTerms}
                   onChange={(e) => setAgreeTerms(e.target.checked)}
-                  className="rounded border-slate-700 bg-slate-900 text-emerald-500 focus:ring-0 mt-0.5 cursor-pointer"
+                  className="rounded border-slate-300 text-slate-900 focus:ring-0 mt-0.5 cursor-pointer"
                 />
                 <span>
-                  I declare that the facility produces or consumes verified packaging / secondary materials, and agree to the RELOOP Circular Exchange charter & audit protocols.
+                  I declare that the facility produces or consumes verified packaging / secondary materials, and agree to the LoopMarket Circular Exchange charter & audit protocols.
                 </span>
               </label>
             </div>
@@ -617,7 +634,7 @@ export const SignupPage: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl font-bold transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/10 cursor-pointer disabled:opacity-50 mt-4"
+              className="w-full py-3 bg-slate-950 hover:bg-slate-800 text-white rounded-xl font-bold transition flex items-center justify-center gap-2 shadow-sm cursor-pointer disabled:opacity-50 mt-4"
             >
               {loading ? (
                 <>
@@ -632,9 +649,9 @@ export const SignupPage: React.FC = () => {
           </form>
 
           {/* Return to Sign In */}
-          <div className="text-center pt-2 border-t border-slate-800 text-xs text-slate-400">
+          <div className="text-center pt-2 border-t border-slate-100 text-xs text-slate-500">
             Already registered?{' '}
-            <Link to="/login" className="text-emerald-400 hover:text-emerald-300 font-bold underline">
+            <Link to="/login" className="text-slate-950 hover:text-black font-bold underline">
               Sign in to your account →
             </Link>
           </div>
@@ -643,8 +660,8 @@ export const SignupPage: React.FC = () => {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-slate-800 py-4 px-6 text-center text-[11px] text-slate-500 font-mono">
-        RELOOP Circular Carbon Platform • Protected by End-to-End Enterprise Cryptography
+      <footer className="border-t border-slate-200 py-4 px-6 text-center text-[11px] text-slate-400 font-mono bg-white">
+        LoopMarket B2B Circular Platform • Protected by End-to-End Enterprise Cryptography
       </footer>
     </div>
   );

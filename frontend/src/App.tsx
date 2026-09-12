@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { Sidebar } from './components/Sidebar';
 import { Navbar } from './components/Navbar';
 import { NotificationDrawer } from './components/NotificationDrawer';
+import { MobileBottomNav } from './components/MobileBottomNav';
 
 // Pages
 import { LandingPage } from './pages/LandingPage';
@@ -41,10 +42,16 @@ const AppLayout: React.FC = () => {
           onOpenNotifications={() => setShowNotifications(true)} 
           onToggleSidebar={() => setMobileSidebarOpen(!mobileSidebarOpen)}
         />
-        <main className="flex-1 pb-16">
+        <main className="flex-1 pb-20 md:pb-8">
           <Outlet />
         </main>
       </div>
+
+      {/* Mobile Bottom Navigation Quick-Bar */}
+      <MobileBottomNav 
+        onOpenSidebar={() => setMobileSidebarOpen(true)}
+        isSidebarOpen={mobileSidebarOpen}
+      />
 
       {/* Notifications Drawer */}
       <NotificationDrawer
