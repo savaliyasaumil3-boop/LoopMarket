@@ -195,7 +195,43 @@ export async function updateSupabaseOrder(id: string | number, updates: Record<s
 }
 
 /**
- * Clear all cached local data to allow a fresh user start.
+ * Get global clear timestamp for orders from Supabase DB or local storage fallback.
+ */
+export async function getGlobalClearTimestamp(): Promise<number> {
+  try {
+    const { data } = await supabase.from('system_state').select('value').eq('key', 'orders_cleared_at').single();
+    if (data && data.value && data.value.timestamp) {
+      const ts = Number(data.value.timestamp);
+      // Keep local storage in sync as fallback
+      localStorage.setItem('loopmarket_cleared_at', String(ts));
+      return ts;
+    }
+  } catch {
+    // ignore Supabase error
+  }
+  const localTs = localStorage.getItem('loopmarket_cleared_at');
+  return localTs ? Number(localTs) : 0;
+}
+
+/**
+ * Record global clear timestamp in Supabase DB and local storage.
+ */
+export async function setGlobalClearTimestamp(): Promise<number> {
+  const ts = Date.now();
+  localStorage.setItem('loopmarket_cleared_at', String(ts));
+  localStorage.setItem('loopmarket_cleared', 'true');
+  try {
+    await supabase.from('system_state').upsert([
+      { key: 'orders_cleared_at', value: { timestamp: ts }, updated_at: new Date().toISOString() }
+    ], { onConflict: 'key' });
+  } catch (err: any) {
+    console.warn('Supabase DB setGlobalClearTimestamp skipped:', err.message);
+  }
+  return ts;
+}
+
+/**
+ * Clear all cached local data and broadcast global order wipe to all teammates.
  */
 export async function clearAllLocalData() {
   try {
@@ -203,11 +239,12 @@ export async function clearAllLocalData() {
     localStorage.removeItem('loopmarket_user_listings');
     localStorage.removeItem('loopmarket_user_requirements');
     localStorage.removeItem('loopmarket_user_contracts');
-    localStorage.setItem('loopmarket_cleared', 'true');
+    await setGlobalClearTimestamp().catch(() => null);
     await clearSupabaseOrders().catch(() => null);
     await api.clearOrders().catch(() => null);
   } catch {
     // ignore
   }
 }
+
 

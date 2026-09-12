@@ -71,15 +71,45 @@ CREATE TABLE IF NOT EXISTS public.requirements (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 5. ENABLE ROW LEVEL SECURITY & ADD PUBLIC POLICIES
+-- 5. ORDERS TABLE
+CREATE TABLE IF NOT EXISTS public.orders (
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+  order_number TEXT,
+  material_id TEXT,
+  material_name TEXT,
+  material_category TEXT,
+  quantity NUMERIC,
+  unit TEXT DEFAULT 'kg',
+  unit_price NUMERIC,
+  subtotal_amount NUMERIC,
+  logistics_cost NUMERIC,
+  total_delivered_amount NUMERIC,
+  status TEXT DEFAULT 'ORDER_CONFIRMED',
+  seller_name TEXT,
+  seller_city TEXT,
+  buyer_name TEXT,
+  buyer_city TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 6. SYSTEM STATE TABLE (For cross-teammate sync like clear operations)
+CREATE TABLE IF NOT EXISTS public.system_state (
+  key TEXT PRIMARY KEY,
+  value JSONB,
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 7. ENABLE ROW LEVEL SECURITY & ADD PUBLIC POLICIES
 ALTER TABLE public.companies ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.materials ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.contracts ENABLE ROW LEVEL SECURITY;
 CREATE INDEX IF NOT EXISTS contracts_owner_company_idx ON public.contracts (owner_company_id);
 CREATE INDEX IF NOT EXISTS contracts_seller_buyer_idx ON public.contracts (seller_id, buyer_id);
 ALTER TABLE public.requirements ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.system_state ENABLE ROW LEVEL SECURITY;
 
--- Allow Public (anon) Read & Insert Access
+-- Allow Public (anon) Read, Insert, Update & Delete Access
 DROP POLICY IF EXISTS "Public read companies" ON public.companies;
 CREATE POLICY "Public read companies" ON public.companies FOR SELECT USING (true);
 DROP POLICY IF EXISTS "Public insert companies" ON public.companies;
@@ -103,6 +133,22 @@ DROP POLICY IF EXISTS "Public read requirements" ON public.requirements;
 CREATE POLICY "Public read requirements" ON public.requirements FOR SELECT USING (true);
 DROP POLICY IF EXISTS "Public insert requirements" ON public.requirements;
 CREATE POLICY "Public insert requirements" ON public.requirements FOR INSERT WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Public read orders" ON public.orders;
+CREATE POLICY "Public read orders" ON public.orders FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Public insert orders" ON public.orders;
+CREATE POLICY "Public insert orders" ON public.orders FOR INSERT WITH CHECK (true);
+DROP POLICY IF EXISTS "Public update orders" ON public.orders;
+CREATE POLICY "Public update orders" ON public.orders FOR UPDATE USING (true);
+DROP POLICY IF EXISTS "Public delete orders" ON public.orders;
+CREATE POLICY "Public delete orders" ON public.orders FOR DELETE USING (true);
+
+DROP POLICY IF EXISTS "Public read system_state" ON public.system_state;
+CREATE POLICY "Public read system_state" ON public.system_state FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Public insert system_state" ON public.system_state;
+CREATE POLICY "Public insert system_state" ON public.system_state FOR INSERT WITH CHECK (true);
+DROP POLICY IF EXISTS "Public update system_state" ON public.system_state;
+CREATE POLICY "Public update system_state" ON public.system_state FOR UPDATE USING (true);
 
 -- 6. SEED DEMO DATA
 
