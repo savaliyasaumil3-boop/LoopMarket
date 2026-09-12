@@ -19,7 +19,8 @@ import {
   SlidersHorizontal,
   Bot,
   LogOut,
-  X
+  X,
+  Workflow
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
