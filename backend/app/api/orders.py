@@ -28,15 +28,35 @@ LIFECYCLE_STEPS = [
 @router.delete("/clear")
 def clear_all_orders(db: Session = Depends(get_db)):
     try:
-        db.query(EscrowPayment).delete()
-        db.query(LogisticsShipment).delete()
+        db.query(DisputeRecord).delete()
         db.query(QualityInspection).delete()
+        db.query(LogisticsShipment).delete()
+        db.query(EscrowPayment).delete()
+        db.query(ImpactRecord).delete()
         db.query(Order).delete()
         db.commit()
-        return {"message": "All backend orders cleared"}
+        return {"success": True, "message": "All backend orders cleared"}
     except Exception as e:
         db.rollback()
-        return {"message": str(e)}
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.delete("/{id}")
+def delete_single_order(id: str, db: Session = Depends(get_db)):
+    o = db.query(Order).filter((Order.id == id) | (Order.order_number == id)).first()
+    if not o:
+        raise HTTPException(status_code=404, detail="Order not found")
+
+    inspection = db.query(QualityInspection).filter(QualityInspection.order_id == o.id).first()
+    if inspection:
+        db.query(DisputeRecord).filter(DisputeRecord.inspection_id == inspection.id).delete()
+        db.delete(inspection)
+
+    db.query(EscrowPayment).filter(EscrowPayment.order_id == o.id).delete()
+    db.query(LogisticsShipment).filter(LogisticsShipment.order_id == o.id).delete()
+    db.query(ImpactRecord).filter(ImpactRecord.order_id == o.id).delete()
+    db.delete(o)
+    db.commit()
+    return {"success": True, "message": f"Order {id} deleted successfully"}
 
 @router.get("")
 def list_orders(

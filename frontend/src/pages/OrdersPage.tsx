@@ -5,7 +5,7 @@ import {
   Clock, AlertTriangle, FileText, Sparkles, Trash2, RefreshCw
 } from 'lucide-react';
 import { api } from '../lib/api';
-import { fetchOrders as fetchOrdersFromSupabase, clearAllLocalData } from '../lib/supabaseData';
+import { fetchOrders as fetchOrdersFromSupabase, clearAllLocalData, getGlobalClearTimestamp } from '../lib/supabaseData';
 
 export const OrdersPage: React.FC = () => {
   const [orders, setOrders] = useState<any[]>([]);
@@ -18,6 +18,8 @@ export const OrdersPage: React.FC = () => {
 
   const loadOrders = async () => {
     setLoading(true);
+
+    const clearedAt = await getGlobalClearTimestamp().catch(() => 0);
 
     let sbOrders: any[] = [];
     try {
@@ -38,6 +40,21 @@ export const OrdersPage: React.FC = () => {
       localOrders = JSON.parse(localStorage.getItem('loopmarket_user_orders') || '[]');
     } catch {
       localOrders = [];
+    }
+
+    // Filter out orders created prior to global clear timestamp
+    if (clearedAt > 0) {
+      localOrders = localOrders.filter((o: any) => {
+        if (!o.created_at) return false;
+        const orderTime = new Date(o.created_at).getTime();
+        return orderTime > clearedAt;
+      });
+      // Sync cleaned local state back to localStorage
+      try {
+        localStorage.setItem('loopmarket_user_orders', JSON.stringify(localOrders));
+      } catch {
+        // ignore
+      }
     }
 
     const DUMMY_ORDER_NUMBERS = new Set([

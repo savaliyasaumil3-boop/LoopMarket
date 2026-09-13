@@ -77,6 +77,7 @@ export const api = {
   createOrder: (data: any) => fetchApi('/orders', { method: 'POST', body: JSON.stringify(data) }),
   updateOrderStatus: (id: string, status: string) => fetchApi(`/orders/${id}/status`, { method: 'PUT', body: JSON.stringify({ status }) }),
   clearOrders: () => fetchApi('/orders/clear', { method: 'DELETE' }),
+  deleteOrder: (id: string) => fetchApi(`/orders/${id}`, { method: 'DELETE' }),
 
   // Contracts
   getContracts: (params: Record<string, any> = {}) => {
